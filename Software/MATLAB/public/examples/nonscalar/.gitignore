@@ -1,0 +1,4 @@
+outFolder*
+test_arrays*
+*.mat
+*.parquet

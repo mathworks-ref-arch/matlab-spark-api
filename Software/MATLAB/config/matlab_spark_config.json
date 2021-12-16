@@ -1,0 +1,228 @@
+{
+  "Master": "local",
+  "CurrentVersion": "3.0.1",
+  "Version": [
+    {
+      "name": "2.2.0",
+      "maven": [
+        {
+          "name": "spark.version",
+          "value": "2.2.0"
+        },
+        {
+          "name": "spark.major.version",
+          "value": "2.x"
+        },
+        {
+          "name": "scala.version",
+          "value": "2.11.12"
+        },
+        {
+          "name": "scala.compat.version",
+          "value": "2.11"
+        },
+        {
+          "name": "hadoop.version",
+          "value": "2.6.5"
+        }
+      ],
+      "libs": [
+        {
+          "base": "delta-core",
+          "jar": "delta-core_2.11-0.6.1.jar",
+          "src": "https://repo1.maven.org/maven2/io/delta/delta-core_2.11/0.6.1/delta-core_2.11-0.6.1.jar"
+        },
+        {
+          "base": "spark-avro",
+          "jar": "spark-avro_2.11-2.2.0.jar",
+          "src": "https://repo1.maven.org/maven2/org/apache/spark/spark-avro_2.11/2.2.0/spark-avro_2.11-2.2.0.jar"
+        }
+      ]
+    },
+    {
+      "name": "2.4.5",
+      "maven": [
+        {
+          "name": "spark.version",
+          "value": "2.4.5"
+        },
+        {
+          "name": "spark.major.version",
+          "value": "2.x"
+        },
+        {
+          "name": "scala.version",
+          "value": "2.11.12"
+        },
+        {
+          "name": "scala.compat.version",
+          "value": "2.11"
+        },
+        {
+          "name": "hadoop.version",
+          "value": "2.7.3"
+        }
+      ],
+      "libs": [
+        {
+          "base": "delta-core",
+          "jar": "delta-core_2.11-0.6.1.jar",
+          "src": "https://repo1.maven.org/maven2/io/delta/delta-core_2.11/0.6.1/delta-core_2.11-0.6.1.jar"
+        },
+        {
+          "base": "spark-avro",
+          "jar": "spark-avro_2.11-2.4.5.jar",
+          "src": "https://repo1.maven.org/maven2/org/apache/spark/spark-avro_2.11/2.4.5/spark-avro_2.11-2.4.5.jar"
+        }
+      ]
+    },
+    {
+      "name": "2.4.7",
+      "maven": [
+        {
+          "name": "spark.version",
+          "value": "2.4.7"
+        },
+        {
+          "name": "spark.major.version",
+          "value": "2.x"
+        },
+        {
+          "name": "scala.version",
+          "value": "2.11.12"
+        },
+        {
+          "name": "scala.compat.version",
+          "value": "2.11"
+        },
+        {
+          "name": "hadoop.version",
+          "value": "2.7.4"
+        }
+      ],
+      "libs": [
+        {
+          "base": "delta-core",
+          "jar": "delta-core_2.11-0.6.1.jar",
+          "src": "https://repo1.maven.org/maven2/io/delta/delta-core_2.11/0.6.1/delta-core_2.11-0.6.1.jar"
+        },
+        {
+          "base": "spark-avro",
+          "jar": "spark-avro_2.11-2.4.7.jar",
+          "src": "https://repo1.maven.org/maven2/org/apache/spark/spark-avro_2.11/2.4.7/spark-avro_2.11-2.4.7.jar"
+        }
+      ]
+    },
+    {
+      "name": "3.0.1",
+      "maven": [
+        {
+          "name": "spark.version",
+          "value": "3.0.1"
+        },
+        {
+          "name": "spark.major.version",
+          "value": "3.x"
+        },
+        {
+          "name": "scala.version",
+          "value": "2.12.10"
+        },
+        {
+          "name": "scala.compat.version",
+          "value": "2.12"
+        },
+        {
+          "name": "hadoop.version",
+          "value": "2.7.4"
+        }
+      ],
+      "libs": [
+        {
+          "base": "delta-core",
+          "jar": "delta-core_2.12-0.7.0.jar",
+          "src": "https://repo1.maven.org/maven2/io/delta/delta-core_2.12/0.7.0/delta-core_2.12-0.7.0.jar"
+        },
+        {
+          "base": "spark-avro",
+          "jar": "spark-avro_2.12-3.0.1.jar",
+          "src": "https://repo1.maven.org/maven2/org/apache/spark/spark-avro_2.12/3.0.1/spark-avro_2.12-3.0.1.jar"
+        }
+      ]
+    },
+    {
+      "name": "3.0.1-hadoop3.2",
+      "maven": [
+        {
+          "name": "spark.version",
+          "value": "3.0.1"
+        },
+        {
+          "name": "spark.major.version",
+          "value": "3.x"
+        },
+        {
+          "name": "scala.version",
+          "value": "2.12.10"
+        },
+        {
+          "name": "scala.compat.version",
+          "value": "2.12"
+        },
+        {
+          "name": "hadoop.version",
+          "value": "3.2.0"
+        }
+      ],
+      "libs": [
+        {
+          "base": "delta-core",
+          "jar": "delta-core_2.12-0.7.0.jar",
+          "src": "https://repo1.maven.org/maven2/io/delta/delta-core_2.12/0.7.0/delta-core_2.12-0.7.0.jar"
+        },
+        {
+          "base": "spark-avro",
+          "jar": "spark-avro_2.12-3.0.1.jar",
+          "src": "https://repo1.maven.org/maven2/org/apache/spark/spark-avro_2.12/3.0.1/spark-avro_2.12-3.0.1.jar"
+        }
+      ]
+    },
+    {
+      "name": "3.1.2",
+      "maven": [
+        {
+          "name": "spark.version",
+          "value": "3.1.2"
+        },
+        {
+          "name": "spark.major.version",
+          "value": "3.x"
+        },
+        {
+          "name": "scala.version",
+          "value": "2.12.10"
+        },
+        {
+          "name": "scala.compat.version",
+          "value": "2.12"
+        },
+        {
+          "name": "hadoop.version",
+          "value": "3.2.0"
+        }
+      ],
+      "libs": [
+        {
+          "base": "delta-core",
+          "jar": "delta-core_2.12-1.0.0.jar",
+          "src": "https://repo1.maven.org/maven2/io/delta/delta-core_2.12/1.0.0/delta-core_2.12-1.0.0.jar"
+        },
+        {
+          "base": "spark-avro",
+          "jar": "spark-avro_2.12-3.1.2.jar",
+          "src": "https://repo1.maven.org/maven2/org/apache/spark/spark-avro_2.12/3.1.2/spark-avro_2.12-3.1.2.jar"
+        }
+      ]
+    }
+  ]
+}

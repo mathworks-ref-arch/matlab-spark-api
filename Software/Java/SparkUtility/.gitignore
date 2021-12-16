@@ -1,0 +1,8 @@
+.settings
+.vscode
+.project
+.classpath
+target/
+run_scala.sh
+dependency-reduced-pom.xml
+.idea
