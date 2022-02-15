@@ -40,6 +40,12 @@
 
     <dependency>
       <groupId>org.apache.spark</groupId>
+      <artifactId>spark-yarn_${scala.compat.version}</artifactId>
+      <version>${spark.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.spark</groupId>
       <artifactId>spark-catalyst_${scala.compat.version}</artifactId>
       <version>${spark.version}</version>
     </dependency>

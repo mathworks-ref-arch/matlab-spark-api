@@ -1,5 +1,9 @@
 #  MATLAB *Spark API* - Release Notes
 
+## 0.1.19 (21th Jan 2022)
+* SparkBuilder Info added
+* Support Yarn as host for SparkSession
+
 ## 0.1.18 (16th Dec 2021)
 * Minor, cosmetic fixes
 

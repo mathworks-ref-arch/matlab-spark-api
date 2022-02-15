@@ -72,6 +72,18 @@ SB.build
 After this command, we will have all the output in the folder `outFolder`, and in
 particular our Jar file, `outFolder/datasetexample.jar`.
 
+After the build, the `SB` object will have some additional information in the `Info`
+field, which can be helpful for further use. E.g.
+```matlab
+>> SB.Info
+ans = 
+  struct with fields:
+
+         JarFile: 'bobby_R2021b_Spark3.x_glnxa64.jar'
+     FullJarFile: '/local/Software/MATLAB/examples/TableData/outBDOY/bobby_R2021b_Spark3.x_glnxa64.jar'
+         Imports: "import com.mathworks.demo.bobby.TablesWrapper;"
+    EncoderInits: "TablesWrapper.initEncoders(spark)"
+```
 
 ### Using the methods in a Spark context
 The methods generated can now be used in a Spark context. A Spark context here could

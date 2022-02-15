@@ -32,9 +32,10 @@ classdef SparkBuilder < handle
     end
     properties (SetAccess=private)
         javaClasses
-        buildFiles
+        Info
     end
     properties (SetAccess=private, Hidden=true)
+        buildFiles
         packageDependencies
         compileDependencies
     end
@@ -104,7 +105,9 @@ classdef SparkBuilder < handle
 
                 obj.generateSparkShellHelper();
             end
-                        
+
+            setInfo(obj);
+            
         end
                
         function rerunBuild(obj)
@@ -122,6 +125,7 @@ classdef SparkBuilder < handle
             fprintf('Doc: \n');
             [rd,sd] = obj.runCommand(obj.extendJavaClassPath(obj.docCmd));
             
+            setInfo(obj);
         end
         
         
@@ -150,6 +154,7 @@ classdef SparkBuilder < handle
         end
         
         function addPackageDependency(obj, dep)
+            dep = string(dep);
             if isempty(obj.packageDependencies)
                 obj.packageDependencies = dep(:);
             else
@@ -242,6 +247,29 @@ classdef SparkBuilder < handle
             jc = [jc, sprintf(' %s "%s"', obj.JarOpts, fullfile(obj.outputFolder, [obj.package, '.jar']))];
             %             classP = [obj.getJavaBuilder;obj.packageDependencies];
             %             jc = [jc, sprintf(' -C "%s"', classP.join(pathsep))]
+        end
+
+        function setInfo(obj)
+            % setInfo Add info about build
+            % This only adds some output information to the object, which
+            % can be useful when used later.
+            jarFile = dir(fullfile(obj.outputFolder, '*.jar'));
+            obj.Info.JarFile = jarFile.name;
+            obj.Info.FullJarFile = fullfile(jarFile.folder, jarFile.name);
+            if obj.needsPostProcessing
+                % Import strings and encoder functions are only needed in
+                % the case of Spark wrappers
+                importStr = string.empty;
+                encoderStr = string.empty;
+                for k=1:length(obj.javaClasses)
+                    wrapperName = obj.javaClasses(k).WrapperName;
+                    pkg = obj.package;
+                    importStr(k) = "import " + pkg + "." + wrapperName + ";";
+                    encoderStr(k) = wrapperName +  ".initEncoders(spark)";
+                end
+                obj.Info.Imports = importStr;
+                obj.Info.EncoderInits = encoderStr;
+            end
         end
     end
     
