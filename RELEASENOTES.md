@@ -1,5 +1,10 @@
 #  MATLAB *Spark API* - Release Notes
 
+## 0.1.20 (9th Feb 2022)
+* Fixed Java build for newest MATLAB release (shading certain packages)
+* Removed spark-avro Jar for Spark 2.2.0 (no longer available at repositories)
+* Add support for Spark 3.2.1
+
 ## 0.1.19 (21th Jan 2022)
 * SparkBuilder Info added
 * Support Yarn as host for SparkSession

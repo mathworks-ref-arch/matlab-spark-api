@@ -53,14 +53,6 @@ function startup(varargin)
         
     end
 
-    %% Add Jars to path
-    if getSparkEnvironmentType == "Databricks"
-        % Only add this Jar in a Databricks context. In a plain Spark
-        % context, this Jar must be on the static java classpath.
-        sparkUtilityJar = matlab.sparkutils.getMatlabSparkUtilityFullName('fullpath', true);
-        iSafeAddToJavaPath(sparkUtilityJar);
-    end
-
     %% Post path-setup operations
     % Add your post-setup operations here.
     disp('Running post setup operations');

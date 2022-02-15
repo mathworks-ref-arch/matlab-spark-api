@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.mathworks</groupId>
   <artifactId>matlab-spark-utility</artifactId>
-  <version>0.2.9</version>
+  <version>0.2.10</version>
   <packaging>jar</packaging>
   <name>MATLAB Spark Utility</name>
   <url>http://www.mathworks.com</url>
@@ -267,9 +267,13 @@
                       <shadedPattern>shaded.org.slf4j</shadedPattern> -->
                     </relocation>
                     <!-- <relocation>
-                      <pattern>org.scala</pattern>
-                      <shadedPattern>shaded.org.scala</shadedPattern>
+                      <pattern>org.apache.log4j</pattern>
+                      <shadedPattern>shaded.org.apache.log4j</shadedPattern>
                     </relocation> -->
+                    <relocation>
+                      <pattern>com.google</pattern>
+                      <shadedPattern>shaded.com.google</shadedPattern>
+                      </relocation>
                   </relocations>
 
                 </configuration>
