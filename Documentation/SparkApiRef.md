@@ -88,6 +88,10 @@ Documentation generation settings:
 
 ## Package  *compiler.build.spark*
 
+### Functions
+
+* [compiler.build.spark.pythonPackage](#compilerbuildsparkpythonpackage)
+
 
 ### Classes
 
@@ -95,6 +99,21 @@ Documentation generation settings:
 * [compiler.build.spark.File](#compilerbuildsparkfile)
 * [compiler.build.spark.JavaClass](#compilerbuildsparkjavaclass)
 * [compiler.build.spark.ArgTypeInfo](#compilerbuildsparkargtypeinfo)
+* [compiler.build.spark.PythonSparkBuilder](#compilerbuildsparkpythonsparkbuilder)
+
+### Subpackage  *compiler.build.spark.types*
+
+
+### Classes
+
+* [compiler.build.spark.types.ArgType](#compilerbuildsparktypesargtype)
+* [compiler.build.spark.types.Double](#compilerbuildsparktypesdouble)
+* [compiler.build.spark.types.Boolean](#compilerbuildsparktypesboolean)
+* [compiler.build.spark.types.Float](#compilerbuildsparktypesfloat)
+* [compiler.build.spark.types.Integer](#compilerbuildsparktypesinteger)
+* [compiler.build.spark.types.Long](#compilerbuildsparktypeslong)
+* [compiler.build.spark.types.Short](#compilerbuildsparktypesshort)
+* [compiler.build.spark.types.String](#compilerbuildsparktypesstring)
 
 ### Subpackage  *compiler.build.spark.buildtype*
 
@@ -106,43 +125,23 @@ Documentation generation settings:
 * [compiler.build.spark.buildtype.SparkApi](#compilerbuildsparkbuildtypesparkapi)
 * [compiler.build.spark.buildtype.SparkTall](#compilerbuildsparkbuildtypesparktall)
 
-### Subpackage  *compiler.build.spark.types*
-
-
-### Classes
-
-* [compiler.build.spark.types.ArgType](#compilerbuildsparktypesargtype)
-* [compiler.build.spark.types.Boolean](#compilerbuildsparktypesboolean)
-* [compiler.build.spark.types.Double](#compilerbuildsparktypesdouble)
-* [compiler.build.spark.types.Float](#compilerbuildsparktypesfloat)
-* [compiler.build.spark.types.Integer](#compilerbuildsparktypesinteger)
-* [compiler.build.spark.types.Long](#compilerbuildsparktypeslong)
-* [compiler.build.spark.types.Short](#compilerbuildsparktypesshort)
-* [compiler.build.spark.types.String](#compilerbuildsparktypesstring)
-
 ## Package  *matlab.sparkutils*
 
 ### Functions
 
 * [matlab.sparkutils.getMatlabSparkUtilityFullName](#matlabsparkutilsgetmatlabsparkutilityfullname)
+* [matlab.sparkutils.getMatlabSparkUtilityVersion](#matlabsparkutilsgetmatlabsparkutilityversion)
 * [matlab.sparkutils.datatypeMapper](#matlabsparkutilsdatatypemapper)
 * [matlab.sparkutils.getMatlabSparkExtraJars](#matlabsparkutilsgetmatlabsparkextrajars)
-* [matlab.sparkutils.getMatlabSparkUtilityVersion](#matlabsparkutilsgetmatlabsparkutilityversion)
-* [matlab.sparkutils.getSystemSparkVersion](#matlabsparkutilsgetsystemsparkversion)
-* [matlab.sparkutils.getVersionFromSparkHome](#matlabsparkutilsgetversionfromsparkhome)
-* [matlab.sparkutils.queryMaven](#matlabsparkutilsquerymaven)
 
 
 ### Classes
 
 * [matlab.sparkutils.Config](#matlabsparkutilsconfig)
+* [matlab.sparkutils.StringWriter](#matlabsparkutilsstringwriter)
 * [matlab.sparkutils.JavaWriter](#matlabsparkutilsjavawriter)
 * [matlab.sparkutils.SparkDataframeDatastore](#matlabsparkutilssparkdataframedatastore)
 * [matlab.sparkutils.SparkSessionHandler](#matlabsparkutilssparksessionhandler)
-* [matlab.sparkutils.StringWriter](#matlabsparkutilsstringwriter)
-* [matlab.sparkutils.PomDep](#matlabsparkutilspomdep)
-* [matlab.sparkutils.PomGenerator](#matlabsparkutilspomgenerator)
-* [matlab.sparkutils.SparkJar](#matlabsparkutilssparkjar)
 
 
 ### Standalone Functions
@@ -172,6 +171,8 @@ Documentation generation settings:
 * [table2dataframe](#table2dataframe)
 * [table2dataset](#table2dataset)
 * [tail](#tail)
+* [yamldecode](#yamldecode)
+* [yamlencode](#yamlencode)
 
 
 ------
@@ -3718,6 +3719,16 @@ matlab.compiler.mlspark.Dataset/string is a function.
 
 ```
 
+##### compiler.build.spark.pythonPackage
+
+```notalanguage
+  compiler.build.spark.pythonPackage Spark builder for Python
+ 
+   Please refer to the documentation delivered in this package for
+   PythonSparkBuilder for usage examples.
+
+```
+
 
 #### compiler.build.spark.SparkBuilder
 
@@ -3812,6 +3823,15 @@ compiler.build.spark.SparkBuilder/build is a function.
 ```notalanguage
 compiler.build.spark.SparkBuilder/mccCommand is a function.
     mccStr = mccCommand(obj)
+
+```
+
+*compiler.build.spark.SparkBuilder.setInfo*
+
+```notalanguage
+  setInfo Add info about build
+  This only adds some output information to the object, which
+  can be useful when used later.
 
 ```
 
@@ -3967,6 +3987,22 @@ compiler.build.spark.File/writeMethodComment is a function.
       "Double"    "Double"
   c =
       "Double arg1, Double arg2"
+
+```
+
+*compiler.build.spark.File.generatePythonRowInputArgs*
+
+```notalanguage
+compiler.build.spark.File/generatePythonRowInputArgs is a function.
+    names = generatePythonRowInputArgs(obj, varName)
+
+```
+
+*compiler.build.spark.File.generatePythonInputArgs*
+
+```notalanguage
+compiler.build.spark.File/generatePythonInputArgs is a function.
+    names = generatePythonInputArgs(obj, withNargout)
 
 ```
 
@@ -4218,6 +4254,525 @@ compiler.build.spark.ArgTypeInfo/init is a function.
 ```
 
 
+#### compiler.build.spark.PythonSparkBuilder
+
+```notalanguage
+  PythonSparkBuilder Class for compiling MATLAB files for Spark
+ 
+  This class is a wrapper for the build process in different
+  SparkContexts. 
+  The base, and most important use case, is for building Python
+  libraries, with wrappers for making the code more palatable to Spark.
+ 
+   Please refer to the documentation delivered in this package for
+   usage examples.
+
+```
+
+*compiler.build.spark.PythonSparkBuilder.addFile*
+
+```notalanguage
+compiler.build.spark.PythonSparkBuilder/addFile is a function.
+    addFile(obj, file)
+
+```
+
+*compiler.build.spark.PythonSparkBuilder.genPartitionHelperFiles*
+
+```notalanguage
+  genPartitionHelperFiles
+
+```
+
+*compiler.build.spark.PythonSparkBuilder.generateFunctionWrapper*
+
+```notalanguage
+  generateFunctionWrapper Wrapper for generating interface for one
+  function
+
+```
+
+*compiler.build.spark.PythonSparkBuilder.getFileArguments*
+
+```notalanguage
+compiler.build.spark.PythonSparkBuilder/getFileArguments is a function.
+    [raw, args] = getFileArguments(~, file)
+
+```
+
+*compiler.build.spark.PythonSparkBuilder.init*
+
+```notalanguage
+compiler.build.spark.PythonSparkBuilder/init is a function.
+    init(obj)
+
+```
+
+*compiler.build.spark.PythonSparkBuilder.addHelperFilesToBuild*
+
+```notalanguage
+  addHelperFilesToBuild
+
+```
+
+*compiler.build.spark.PythonSparkBuilder.build*
+
+```notalanguage
+  build Start the build
+
+```
+
+*compiler.build.spark.PythonSparkBuilder.clean*
+
+```notalanguage
+  clean Clean the builld
+
+```
+
+*compiler.build.spark.PythonSparkBuilder.createWheel*
+
+```notalanguage
+  createWheel Create a wheel for the Python package
+
+```
+
+*compiler.build.spark.PythonSparkBuilder.generateSparkShellHelper*
+
+```notalanguage
+  generateSparkShellHelper Generate a shell script for interactive test
+
+```
+
+*compiler.build.spark.PythonSparkBuilder.generateWrapper*
+
+```notalanguage
+  generateWrapper Wrapper for easier handling of Python library
+
+```
+
+*compiler.build.spark.PythonSparkBuilder.genPartitionHelpers*
+
+```notalanguage
+  genPartitionHelpers
+
+```
+
+*compiler.build.spark.PythonSparkBuilder.genPythonSetup*
+
+```notalanguage
+  genPythonSetup Create new setup.py file for install/dist/etc.
+
+```
+
+*compiler.build.spark.PythonSparkBuilder.getWheelFile*
+
+```notalanguage
+  getWheelFile Return name of wheel file
+
+```
+
+*compiler.build.spark.PythonSparkBuilder.uploadWheelToDatabricks*
+
+```notalanguage
+  uploadWheelToDatabricks Upload wheel to Databricks
+ 
+  This method only makes sense when using the matlab-spark-api package
+  in a Databricks context.
+ 
+  Please note that this method can only upload files to DBFS. If using
+  other storage, e.g. s3, it has to be uploaded by other means. The
+  library can still be easily installed, using similar code as at the
+  bottom of this method (see databricks.Library).
+
+```
+
+
+#### compiler.build.spark.types.ArgType
+
+```notalanguage
+  ArgType Base class for argument types
+ 
+  Subclasses are instances of specific data types, e.g. Double, Float,
+  Boolean, etc. The names of the Subclasses will coincide with the Java
+  type names.
+  Compound types may be be subclassed too, or simlpy created by virtue
+  of being an array.
+
+```
+
+*compiler.build.spark.types.ArgType.isScalarData*
+
+```notalanguage
+compiler.build.spark.types.ArgType/isScalarData is a function.
+    ret = isScalarData(obj)
+
+```
+
+*compiler.build.spark.types.ArgType.instantiate*
+
+```notalanguage
+compiler.build.spark.types.ArgType.instantiate is a function.
+    obj = compiler.build.spark.types.ArgType.instantiate(typeName, varargin)
+
+```
+
+*compiler.build.spark.types.ArgType.convertMWToRetValue*
+
+```notalanguage
+compiler.build.spark.types.ArgType/convertMWToRetValue is a function.
+    obj = compiler.build.spark.types.ArgType
+
+```
+
+*compiler.build.spark.types.ArgType.getEncoderInstantiation*
+
+```notalanguage
+compiler.build.spark.types.ArgType/getEncoderInstantiation is a function.
+    obj = compiler.build.spark.types.ArgType
+
+```
+
+*compiler.build.spark.types.ArgType.getEncoderType*
+
+```notalanguage
+compiler.build.spark.types.ArgType/getEncoderType is a function.
+    obj = compiler.build.spark.types.ArgType
+
+```
+
+*compiler.build.spark.types.ArgType.getPrimitiveJavaType*
+
+```notalanguage
+compiler.build.spark.types.ArgType/getPrimitiveJavaType is a function.
+    primitiveName = getPrimitiveJavaType(obj)
+
+```
+
+*compiler.build.spark.types.ArgType.getJavaType*
+
+```notalanguage
+compiler.build.spark.types.ArgType/getJavaType is a function.
+    T = getJavaType(obj)
+
+```
+
+*compiler.build.spark.types.ArgType.declareAndSetRowValue*
+
+```notalanguage
+compiler.build.spark.types.ArgType/declareAndSetRowValue is a function.
+    str = declareAndSetRowValue(obj, srcData, inArgName)
+
+```
+
+*compiler.build.spark.types.ArgType.instantiateMWValue*
+
+```notalanguage
+  instantiateMWValue - Instantiate MW type Java object
+  Arguments:
+   src - a text string describing the variable to use
+   castArgument [optional] - a boolean stating if we should use
+   explicit casting (in case it's just an Object. Default value
+   is false.
+
+```
+
+*compiler.build.spark.types.ArgType.getEncoderCreator*
+
+```notalanguage
+compiler.build.spark.types.ArgType/getEncoderCreator is a function.
+    enc = getEncoderCreator(obj)
+
+```
+
+*compiler.build.spark.types.ArgType.getMWArgType*
+
+```notalanguage
+compiler.build.spark.types.ArgType/getMWArgType is a function.
+    mwType = getMWArgType(obj)
+
+```
+
+*compiler.build.spark.types.ArgType.getRowInputValue*
+
+```notalanguage
+compiler.build.spark.types.ArgType/getRowInputValue is a function.
+    str = getRowInputValue(obj, src, argName)
+
+```
+
+*compiler.build.spark.types.ArgType.getUDFFuncArgType*
+
+```notalanguage
+compiler.build.spark.types.ArgType/getUDFFuncArgType is a function.
+    argType = getUDFFuncArgType(obj)
+
+```
+
+*compiler.build.spark.types.ArgType.getFuncArgType*
+
+```notalanguage
+compiler.build.spark.types.ArgType/getFuncArgType is a function.
+    argType = getFuncArgType(obj)
+
+```
+
+*compiler.build.spark.types.ArgType.getReturnType*
+
+```notalanguage
+compiler.build.spark.types.ArgType/getReturnType is a function.
+    retType = getReturnType(obj)
+
+```
+
+*compiler.build.spark.types.ArgType.getFuncArgTypes*
+
+```notalanguage
+compiler.build.spark.types.ArgType/getFuncArgTypes is a function.
+    types = getFuncArgTypes(obj)
+
+```
+
+*compiler.build.spark.types.ArgType.getReturnTypes*
+
+```notalanguage
+compiler.build.spark.types.ArgType/getReturnTypes is a function.
+    types = getReturnTypes(obj)
+
+```
+
+*compiler.build.spark.types.ArgType.init*
+
+```notalanguage
+compiler.build.spark.types.ArgType/init is a function.
+    init(obj)
+
+```
+
+
+#### compiler.build.spark.types.Double
+
+```notalanguage
+  Double Class used for SparkBuilder datatype handling
+
+```
+
+*compiler.build.spark.types.Double.convertMWToRetValue*
+
+```notalanguage
+compiler.build.spark.types.Double/convertMWToRetValue is a function.
+    str = convertMWToRetValue(obj, srcData)
+
+```
+
+*compiler.build.spark.types.Double.getEncoderInstantiation*
+
+```notalanguage
+compiler.build.spark.types.Double/getEncoderInstantiation is a function.
+    encInst = getEncoderInstantiation(obj)
+
+```
+
+*compiler.build.spark.types.Double.getEncoderType*
+
+```notalanguage
+compiler.build.spark.types.Double/getEncoderType is a function.
+    encType = getEncoderType(obj)
+
+```
+
+
+#### compiler.build.spark.types.Boolean
+
+```notalanguage
+  Boolean Class used for SparkBuilder datatype handling
+
+```
+
+*compiler.build.spark.types.Boolean.convertMWToRetValue*
+
+```notalanguage
+compiler.build.spark.types.Boolean/convertMWToRetValue is a function.
+    str = convertMWToRetValue(obj, srcData)
+
+```
+
+*compiler.build.spark.types.Boolean.getEncoderInstantiation*
+
+```notalanguage
+compiler.build.spark.types.Boolean/getEncoderInstantiation is a function.
+    encInst = getEncoderInstantiation(obj)
+
+```
+
+*compiler.build.spark.types.Boolean.getEncoderType*
+
+```notalanguage
+compiler.build.spark.types.Boolean/getEncoderType is a function.
+    encType = getEncoderType(obj)
+
+```
+
+
+#### compiler.build.spark.types.Float
+
+```notalanguage
+  Float Class used for SparkBuilder datatype handling
+
+```
+
+*compiler.build.spark.types.Float.convertMWToRetValue*
+
+```notalanguage
+compiler.build.spark.types.Float/convertMWToRetValue is a function.
+    str = convertMWToRetValue(obj, srcData)
+
+```
+
+*compiler.build.spark.types.Float.getEncoderInstantiation*
+
+```notalanguage
+compiler.build.spark.types.Float/getEncoderInstantiation is a function.
+    encInst = getEncoderInstantiation(obj)
+
+```
+
+*compiler.build.spark.types.Float.getEncoderType*
+
+```notalanguage
+compiler.build.spark.types.Float/getEncoderType is a function.
+    encType = getEncoderType(obj)
+
+```
+
+
+#### compiler.build.spark.types.Integer
+
+```notalanguage
+  Integer Class used for SparkBuilder datatype handling
+
+```
+
+*compiler.build.spark.types.Integer.convertMWToRetValue*
+
+```notalanguage
+compiler.build.spark.types.Integer/convertMWToRetValue is a function.
+    str = convertMWToRetValue(obj, srcData)
+
+```
+
+*compiler.build.spark.types.Integer.getEncoderInstantiation*
+
+```notalanguage
+compiler.build.spark.types.Integer/getEncoderInstantiation is a function.
+    encInst = getEncoderInstantiation(obj)
+
+```
+
+*compiler.build.spark.types.Integer.getEncoderType*
+
+```notalanguage
+compiler.build.spark.types.Integer/getEncoderType is a function.
+    encType = getEncoderType(obj)
+
+```
+
+
+#### compiler.build.spark.types.Long
+
+```notalanguage
+  Long Class used for SparkBuilder datatype handling
+
+```
+
+*compiler.build.spark.types.Long.convertMWToRetValue*
+
+```notalanguage
+compiler.build.spark.types.Long/convertMWToRetValue is a function.
+    str = convertMWToRetValue(obj, srcData)
+
+```
+
+*compiler.build.spark.types.Long.getEncoderInstantiation*
+
+```notalanguage
+compiler.build.spark.types.Long/getEncoderInstantiation is a function.
+    encInst = getEncoderInstantiation(obj)
+
+```
+
+*compiler.build.spark.types.Long.getEncoderType*
+
+```notalanguage
+compiler.build.spark.types.Long/getEncoderType is a function.
+    encType = getEncoderType(obj)
+
+```
+
+
+#### compiler.build.spark.types.Short
+
+```notalanguage
+  Short Class used for SparkBuilder datatype handling
+
+```
+
+*compiler.build.spark.types.Short.convertMWToRetValue*
+
+```notalanguage
+compiler.build.spark.types.Short/convertMWToRetValue is a function.
+    str = convertMWToRetValue(obj, srcData)
+
+```
+
+*compiler.build.spark.types.Short.getEncoderInstantiation*
+
+```notalanguage
+compiler.build.spark.types.Short/getEncoderInstantiation is a function.
+    encInst = getEncoderInstantiation(obj)
+
+```
+
+*compiler.build.spark.types.Short.getEncoderType*
+
+```notalanguage
+compiler.build.spark.types.Short/getEncoderType is a function.
+    encType = getEncoderType(obj)
+
+```
+
+
+#### compiler.build.spark.types.String
+
+```notalanguage
+  String Class used for SparkBuilder datatype handling
+
+```
+
+*compiler.build.spark.types.String.convertMWToRetValue*
+
+```notalanguage
+compiler.build.spark.types.String/convertMWToRetValue is a function.
+    str = convertMWToRetValue(obj, srcData)
+
+```
+
+*compiler.build.spark.types.String.getEncoderInstantiation*
+
+```notalanguage
+compiler.build.spark.types.String/getEncoderInstantiation is a function.
+    encInst = getEncoderInstantiation(obj)
+
+```
+
+*compiler.build.spark.types.String.getEncoderType*
+
+```notalanguage
+compiler.build.spark.types.String/getEncoderType is a function.
+    encType = getEncoderType(obj)
+
+```
+
+
 #### compiler.build.spark.buildtype.BaseType
 
 ```notalanguage
@@ -4388,399 +4943,6 @@ compiler.build.spark.buildtype.SparkTall/mccOpts is a function.
 
 ```
 
-
-#### compiler.build.spark.types.ArgType
-
-```notalanguage
-  ArgType Base class for argument types
- 
-  Subclasses are instances of specific data types, e.g. Double, Float,
-  Boolean, etc. The names of the Subclasses will coincide with the Java
-  type names.
-  Compound types may be be subclassed too, or simlpy created by virtue
-  of being an array.
-
-```
-
-*compiler.build.spark.types.ArgType.isScalarData*
-
-```notalanguage
-compiler.build.spark.types.ArgType/isScalarData is a function.
-    ret = isScalarData(obj)
-
-```
-
-*compiler.build.spark.types.ArgType.instantiate*
-
-```notalanguage
-compiler.build.spark.types.ArgType.instantiate is a function.
-    obj = compiler.build.spark.types.ArgType.instantiate(typeName, varargin)
-
-```
-
-*compiler.build.spark.types.ArgType.convertMWToRetValue*
-
-```notalanguage
-compiler.build.spark.types.ArgType/convertMWToRetValue is a function.
-    obj = compiler.build.spark.types.ArgType
-
-```
-
-*compiler.build.spark.types.ArgType.getEncoderInstantiation*
-
-```notalanguage
-compiler.build.spark.types.ArgType/getEncoderInstantiation is a function.
-    obj = compiler.build.spark.types.ArgType
-
-```
-
-*compiler.build.spark.types.ArgType.getEncoderType*
-
-```notalanguage
-compiler.build.spark.types.ArgType/getEncoderType is a function.
-    obj = compiler.build.spark.types.ArgType
-
-```
-
-*compiler.build.spark.types.ArgType.getPrimitiveJavaType*
-
-```notalanguage
-compiler.build.spark.types.ArgType/getPrimitiveJavaType is a function.
-    primitiveName = getPrimitiveJavaType(obj)
-
-```
-
-*compiler.build.spark.types.ArgType.getJavaType*
-
-```notalanguage
-compiler.build.spark.types.ArgType/getJavaType is a function.
-    T = getJavaType(obj)
-
-```
-
-*compiler.build.spark.types.ArgType.declareAndSetRowValue*
-
-```notalanguage
-compiler.build.spark.types.ArgType/declareAndSetRowValue is a function.
-    str = declareAndSetRowValue(obj, srcData, inArgName)
-
-```
-
-*compiler.build.spark.types.ArgType.instantiateMWValue*
-
-```notalanguage
-  instantiateMWValue - Instantiate MW type Java object
-  Arguments:
-   src - a text string describing the variable to use
-   castArgument [optional] - a boolean stating if we should use
-   explicit casting (in case it's just an Object. Default value
-   is false.
-
-```
-
-*compiler.build.spark.types.ArgType.getEncoderCreator*
-
-```notalanguage
-compiler.build.spark.types.ArgType/getEncoderCreator is a function.
-    enc = getEncoderCreator(obj)
-
-```
-
-*compiler.build.spark.types.ArgType.getMWArgType*
-
-```notalanguage
-compiler.build.spark.types.ArgType/getMWArgType is a function.
-    mwType = getMWArgType(obj)
-
-```
-
-*compiler.build.spark.types.ArgType.getRowInputValue*
-
-```notalanguage
-compiler.build.spark.types.ArgType/getRowInputValue is a function.
-    str = getRowInputValue(obj, src, argName)
-
-```
-
-*compiler.build.spark.types.ArgType.getUDFFuncArgType*
-
-```notalanguage
-compiler.build.spark.types.ArgType/getUDFFuncArgType is a function.
-    argType = getUDFFuncArgType(obj)
-
-```
-
-*compiler.build.spark.types.ArgType.getFuncArgType*
-
-```notalanguage
-compiler.build.spark.types.ArgType/getFuncArgType is a function.
-    argType = getFuncArgType(obj)
-
-```
-
-*compiler.build.spark.types.ArgType.getReturnType*
-
-```notalanguage
-compiler.build.spark.types.ArgType/getReturnType is a function.
-    retType = getReturnType(obj)
-
-```
-
-*compiler.build.spark.types.ArgType.getFuncArgTypes*
-
-```notalanguage
-compiler.build.spark.types.ArgType/getFuncArgTypes is a function.
-    types = getFuncArgTypes(obj)
-
-```
-
-*compiler.build.spark.types.ArgType.getReturnTypes*
-
-```notalanguage
-compiler.build.spark.types.ArgType/getReturnTypes is a function.
-    types = getReturnTypes(obj)
-
-```
-
-*compiler.build.spark.types.ArgType.init*
-
-```notalanguage
-compiler.build.spark.types.ArgType/init is a function.
-    init(obj)
-
-```
-
-
-#### compiler.build.spark.types.Boolean
-
-```notalanguage
-compiler.build.spark.types.Boolean is a class.
-    obj = compiler.build.spark.types.Boolean(varargin)
-
-```
-
-*compiler.build.spark.types.Boolean.convertMWToRetValue*
-
-```notalanguage
-compiler.build.spark.types.Boolean/convertMWToRetValue is a function.
-    str = convertMWToRetValue(obj, srcData)
-
-```
-
-*compiler.build.spark.types.Boolean.getEncoderInstantiation*
-
-```notalanguage
-compiler.build.spark.types.Boolean/getEncoderInstantiation is a function.
-    encInst = getEncoderInstantiation(obj)
-
-```
-
-*compiler.build.spark.types.Boolean.getEncoderType*
-
-```notalanguage
-compiler.build.spark.types.Boolean/getEncoderType is a function.
-    encType = getEncoderType(obj)
-
-```
-
-
-#### compiler.build.spark.types.Double
-
-```notalanguage
-compiler.build.spark.types.Double is a class.
-    obj = compiler.build.spark.types.Double(varargin)
-
-```
-
-*compiler.build.spark.types.Double.convertMWToRetValue*
-
-```notalanguage
-compiler.build.spark.types.Double/convertMWToRetValue is a function.
-    str = convertMWToRetValue(obj, srcData)
-
-```
-
-*compiler.build.spark.types.Double.getEncoderInstantiation*
-
-```notalanguage
-compiler.build.spark.types.Double/getEncoderInstantiation is a function.
-    encInst = getEncoderInstantiation(obj)
-
-```
-
-*compiler.build.spark.types.Double.getEncoderType*
-
-```notalanguage
-compiler.build.spark.types.Double/getEncoderType is a function.
-    encType = getEncoderType(obj)
-
-```
-
-
-#### compiler.build.spark.types.Float
-
-```notalanguage
-compiler.build.spark.types.Float is a class.
-    obj = compiler.build.spark.types.Float(varargin)
-
-```
-
-*compiler.build.spark.types.Float.convertMWToRetValue*
-
-```notalanguage
-compiler.build.spark.types.Float/convertMWToRetValue is a function.
-    str = convertMWToRetValue(obj, srcData)
-
-```
-
-*compiler.build.spark.types.Float.getEncoderInstantiation*
-
-```notalanguage
-compiler.build.spark.types.Float/getEncoderInstantiation is a function.
-    encInst = getEncoderInstantiation(obj)
-
-```
-
-*compiler.build.spark.types.Float.getEncoderType*
-
-```notalanguage
-compiler.build.spark.types.Float/getEncoderType is a function.
-    encType = getEncoderType(obj)
-
-```
-
-
-#### compiler.build.spark.types.Integer
-
-```notalanguage
-compiler.build.spark.types.Integer is a class.
-    obj = compiler.build.spark.types.Integer(varargin)
-
-```
-
-*compiler.build.spark.types.Integer.convertMWToRetValue*
-
-```notalanguage
-compiler.build.spark.types.Integer/convertMWToRetValue is a function.
-    str = convertMWToRetValue(obj, srcData)
-
-```
-
-*compiler.build.spark.types.Integer.getEncoderInstantiation*
-
-```notalanguage
-compiler.build.spark.types.Integer/getEncoderInstantiation is a function.
-    encInst = getEncoderInstantiation(obj)
-
-```
-
-*compiler.build.spark.types.Integer.getEncoderType*
-
-```notalanguage
-compiler.build.spark.types.Integer/getEncoderType is a function.
-    encType = getEncoderType(obj)
-
-```
-
-
-#### compiler.build.spark.types.Long
-
-```notalanguage
-compiler.build.spark.types.Long is a class.
-    obj = compiler.build.spark.types.Long(varargin)
-
-```
-
-*compiler.build.spark.types.Long.convertMWToRetValue*
-
-```notalanguage
-compiler.build.spark.types.Long/convertMWToRetValue is a function.
-    str = convertMWToRetValue(obj, srcData)
-
-```
-
-*compiler.build.spark.types.Long.getEncoderInstantiation*
-
-```notalanguage
-compiler.build.spark.types.Long/getEncoderInstantiation is a function.
-    encInst = getEncoderInstantiation(obj)
-
-```
-
-*compiler.build.spark.types.Long.getEncoderType*
-
-```notalanguage
-compiler.build.spark.types.Long/getEncoderType is a function.
-    encType = getEncoderType(obj)
-
-```
-
-
-#### compiler.build.spark.types.Short
-
-```notalanguage
-compiler.build.spark.types.Short is a class.
-    obj = compiler.build.spark.types.Short(varargin)
-
-```
-
-*compiler.build.spark.types.Short.convertMWToRetValue*
-
-```notalanguage
-compiler.build.spark.types.Short/convertMWToRetValue is a function.
-    str = convertMWToRetValue(obj, srcData)
-
-```
-
-*compiler.build.spark.types.Short.getEncoderInstantiation*
-
-```notalanguage
-compiler.build.spark.types.Short/getEncoderInstantiation is a function.
-    encInst = getEncoderInstantiation(obj)
-
-```
-
-*compiler.build.spark.types.Short.getEncoderType*
-
-```notalanguage
-compiler.build.spark.types.Short/getEncoderType is a function.
-    encType = getEncoderType(obj)
-
-```
-
-
-#### compiler.build.spark.types.String
-
-```notalanguage
-compiler.build.spark.types.String is a class.
-    obj = compiler.build.spark.types.String(varargin)
-
-```
-
-*compiler.build.spark.types.String.convertMWToRetValue*
-
-```notalanguage
-compiler.build.spark.types.String/convertMWToRetValue is a function.
-    str = convertMWToRetValue(obj, srcData)
-
-```
-
-*compiler.build.spark.types.String.getEncoderInstantiation*
-
-```notalanguage
-compiler.build.spark.types.String/getEncoderInstantiation is a function.
-    encInst = getEncoderInstantiation(obj)
-
-```
-
-*compiler.build.spark.types.String.getEncoderType*
-
-```notalanguage
-compiler.build.spark.types.String/getEncoderType is a function.
-    encType = getEncoderType(obj)
-
-```
-
 ##### matlab.sparkutils.getMatlabSparkUtilityFullName
 
 ```notalanguage
@@ -4804,6 +4966,13 @@ compiler.build.spark.types.String/getEncoderType is a function.
   matlabJar = matlab.sparkutils.getMatlabSparkUtilityFullName('shaded', false)
   matlabJar =
       "matlab-spark-utility_3.0.1-0.2.7.jar"
+
+```
+
+##### matlab.sparkutils.getMatlabSparkUtilityVersion
+
+```notalanguage
+  getMatlabSparkUtilityVersion Retrieve version from pom-file
 
 ```
 
@@ -4857,45 +5026,6 @@ compiler.build.spark.types.String/getEncoderType is a function.
       "delta-core_2.12-0.7.0.jar"
       "spark-avro_2.12-3.0.1.jar"
       "matlab-spark-utility-spark_3.0.1-0.2.6.jar"
-
-```
-
-##### matlab.sparkutils.getMatlabSparkUtilityVersion
-
-```notalanguage
-  getMatlabSparkUtilityVersion Retrieve version from pom-file
-
-```
-
-##### matlab.sparkutils.getSystemSparkVersion
-
-```notalanguage
-  getSystemSparkVersion Query Spark about its version
-
-```
-
-##### matlab.sparkutils.getVersionFromSparkHome
-
-```notalanguage
-  getVersionFromSparkHome Retrieve version from SPARK_HOME
-
-```
-
-##### matlab.sparkutils.queryMaven
-
-```notalanguage
-  queryMaven Query Maven for a specific artifact
- 
-  This function will query maven for a specific artifact and
-  return the results in JSON.
-  It takes string argument pairs, that corresponds to query arguments
-  in the API. Examples are:
-  g - groupId
-  a - artifactId
-  v - version
- 
-  Example, query for the artifact scala-compiler with version 2.12.10
-  result = matlab.sparkutils.queryMaven('a', 'scala-compiler', 'v', '2.12.10');
 
 ```
 
@@ -5045,6 +5175,105 @@ matlab.sparkutils.Config.setInMemoryVersion is a function.
   overwriteUserConfig Overwrite user config with defaults
   This may be needed if user config is present, but the
   structure of the default config has changed.
+
+```
+
+
+#### matlab.sparkutils.StringWriter
+
+```notalanguage
+  StringWriter - Helper class for writing to files or temporary strings
+
+```
+
+*matlab.sparkutils.StringWriter.delete*
+
+```notalanguage
+ DELETE   Delete a handle object.
+    DELETE(H) deletes all handle objects in array H. After the delete 
+    function call, H is an array of invalid objects.
+ 
+    See also MATLAB.SPARKUTILS.STRINGWRITER, MATLAB.SPARKUTILS.STRINGWRITER/ISVALID, CLEAR
+
+Help for matlab.sparkutils.StringWriter/delete is inherited from superclass handle
+
+```
+
+*matlab.sparkutils.StringWriter.unindent*
+
+```notalanguage
+matlab.sparkutils.StringWriter/unindent is a function.
+    unindent(this)
+
+```
+
+*matlab.sparkutils.StringWriter.indent*
+
+```notalanguage
+matlab.sparkutils.StringWriter/indent is a function.
+    indent(this)
+
+```
+
+*matlab.sparkutils.StringWriter.tab*
+
+```notalanguage
+matlab.sparkutils.StringWriter/tab is a function.
+    tab(this, num)
+
+```
+
+*matlab.sparkutils.StringWriter.insertLines*
+
+```notalanguage
+  insertLines Splits on \n and inserts lines
+
+```
+
+*matlab.sparkutils.StringWriter.nl*
+
+```notalanguage
+matlab.sparkutils.StringWriter/nl is a function.
+    nl(this)
+
+```
+
+*matlab.sparkutils.StringWriter.pf*
+
+```notalanguage
+  Short-hand for printf
+
+```
+
+*matlab.sparkutils.StringWriter.insertFile*
+
+```notalanguage
+matlab.sparkutils.StringWriter/insertFile is a function.
+    insertFile(this, fileName)
+
+```
+
+*matlab.sparkutils.StringWriter.getString*
+
+```notalanguage
+matlab.sparkutils.StringWriter/getString is a function.
+    str = getString(this)
+
+```
+
+*matlab.sparkutils.StringWriter.getProtectString*
+
+```notalanguage
+matlab.sparkutils.StringWriter/getProtectString is a function.
+    str = getProtectString(this)
+
+```
+
+*matlab.sparkutils.StringWriter.closeFile*
+
+```notalanguage
+matlab.sparkutils.StringWriter/closeFile is a function.
+    closeFile(this)
 
 ```
 
@@ -5302,249 +5531,6 @@ matlab.sparkutils.SparkSessionHandler.listSessions is a function.
 ```notalanguage
 matlab.sparkutils.SparkSessionHandler.getSession is a function.
     spark = matlab.sparkutils.SparkSessionHandler.getSession(sparkMaster)
-
-```
-
-
-#### matlab.sparkutils.StringWriter
-
-```notalanguage
-  StringWriter - Helper class for writing to files or temporary strings
-
-```
-
-*matlab.sparkutils.StringWriter.delete*
-
-```notalanguage
- DELETE   Delete a handle object.
-    DELETE(H) deletes all handle objects in array H. After the delete 
-    function call, H is an array of invalid objects.
- 
-    See also MATLAB.SPARKUTILS.STRINGWRITER, MATLAB.SPARKUTILS.STRINGWRITER/ISVALID, CLEAR
-
-Help for matlab.sparkutils.StringWriter/delete is inherited from superclass handle
-
-```
-
-*matlab.sparkutils.StringWriter.unindent*
-
-```notalanguage
-matlab.sparkutils.StringWriter/unindent is a function.
-    unindent(this)
-
-```
-
-*matlab.sparkutils.StringWriter.indent*
-
-```notalanguage
-matlab.sparkutils.StringWriter/indent is a function.
-    indent(this)
-
-```
-
-*matlab.sparkutils.StringWriter.tab*
-
-```notalanguage
-matlab.sparkutils.StringWriter/tab is a function.
-    tab(this, num)
-
-```
-
-*matlab.sparkutils.StringWriter.insertLines*
-
-```notalanguage
-  insertLines Splits on \n and inserts lines
-
-```
-
-*matlab.sparkutils.StringWriter.nl*
-
-```notalanguage
-matlab.sparkutils.StringWriter/nl is a function.
-    nl(this)
-
-```
-
-*matlab.sparkutils.StringWriter.pf*
-
-```notalanguage
-  Short-hand for printf
-
-```
-
-*matlab.sparkutils.StringWriter.insertFile*
-
-```notalanguage
-matlab.sparkutils.StringWriter/insertFile is a function.
-    insertFile(this, fileName)
-
-```
-
-*matlab.sparkutils.StringWriter.getString*
-
-```notalanguage
-matlab.sparkutils.StringWriter/getString is a function.
-    str = getString(this)
-
-```
-
-*matlab.sparkutils.StringWriter.getProtectString*
-
-```notalanguage
-matlab.sparkutils.StringWriter/getProtectString is a function.
-    str = getProtectString(this)
-
-```
-
-*matlab.sparkutils.StringWriter.closeFile*
-
-```notalanguage
-matlab.sparkutils.StringWriter/closeFile is a function.
-    closeFile(this)
-
-```
-
-
-#### matlab.sparkutils.PomDep
-
-```notalanguage
-  PomDef Class to handle pom dependencies
-
-```
-
-*matlab.sparkutils.PomDep.initData*
-
-```notalanguage
-matlab.sparkutils.PomDep/initData is a function.
-    initData(obj, lines)
-
-```
-
-
-#### matlab.sparkutils.PomGenerator
-
-```notalanguage
-  Class to handle Spark Pom-file generation
-
-```
-
-*matlab.sparkutils.PomGenerator.getJarList*
-
-```notalanguage
-matlab.sparkutils.PomGenerator/getJarList is a function.
-    jars = getJarList(obj)
-
-```
-
-*matlab.sparkutils.PomGenerator.readDepTreeFile*
-
-```notalanguage
-matlab.sparkutils.PomGenerator/readDepTreeFile is a function.
-    readDepTreeFile(obj)
-
-```
-
-*matlab.sparkutils.PomGenerator.getInfoFromManifest*
-
-```notalanguage
-matlab.sparkutils.PomGenerator/getInfoFromManifest is a function.
-    S = getInfoFromManifest(obj, name)
-
-```
-
-*matlab.sparkutils.PomGenerator.getInfoFromPomProperties*
-
-```notalanguage
-matlab.sparkutils.PomGenerator/getInfoFromPomProperties is a function.
-    S = getInfoFromPomProperties(obj, name)
-
-```
-
-*matlab.sparkutils.PomGenerator.parseMetaInfo*
-
-```notalanguage
-  Check Manifest
-
-```
-
-*matlab.sparkutils.PomGenerator.parseJarFile*
-
-```notalanguage
-matlab.sparkutils.PomGenerator/parseJarFile is a function.
-    S = parseJarFile(obj, J)
-
-```
-
-*matlab.sparkutils.PomGenerator.parseJarFiles*
-
-```notalanguage
-matlab.sparkutils.PomGenerator/parseJarFiles is a function.
-    parseJarFiles(obj)
-
-```
-
-*matlab.sparkutils.PomGenerator.generatePomFile*
-
-```notalanguage
-matlab.sparkutils.PomGenerator/generatePomFile is a function.
-    generatePomFile(obj)
-
-```
-
-*matlab.sparkutils.PomGenerator.setSparkVersion*
-
-```notalanguage
-  Retrieve version before actually generating classpath
-
-```
-
-*matlab.sparkutils.PomGenerator.getJars*
-
-```notalanguage
-matlab.sparkutils.PomGenerator/getJars is a function.
-    jars = getJars(obj)
-
-```
-
-*matlab.sparkutils.PomGenerator.setSparkHome*
-
-```notalanguage
-matlab.sparkutils.PomGenerator/setSparkHome is a function.
-    setSparkHome(obj)
-
-```
-
-
-#### matlab.sparkutils.SparkJar
-
-```notalanguage
-  SparkJar Class to help build the javaclasspath necessary for Spark
-
-```
-
-*matlab.sparkutils.SparkJar.build*
-
-```notalanguage
-  BUILD Build a local maven repository for the build
-  This step builds a local repository for the creation of the uber jar
-  On success a pom file path is returned as a character vector.
-  On failure an empty character vector is returned.
- 
-  Parameters:
-   extractLocation : Required character vector parameter that specifies
-                     where the Databricks Connect download has been stored.
-
-```
-
-*matlab.sparkutils.SparkJar.getAdditionalJarFiles*
-
-```notalanguage
-  getAdditionalJarFiles Method to download some external Jar files
- 
-  What files are downloaded depends on the settings for this
-  installation, found in the Config.
- 
-  See <a href="help matlab.sparkutils.Config">matlab.sparkutils.Config</a>
 
 ```
 
@@ -5963,8 +5949,60 @@ matlab.sparkutils.PomGenerator/setSparkHome is a function.
 
 ```
 
+##### yamldecode
+
+```notalanguage
+  yamldecode Convert YAML to MATLAB data 
+ 
+  Converts YAML encoding to a MATLAB variable. The output can either be
+  returned or written to a file.
+ 
+  Examples:
+  Convert a YAML string
+ 
+   out = yamldecode('string', 'a: [3, 4, ''hello'']')
+      out =
+        struct with fields:
+ 
+          a: {[3]  [4]  'hello'}
+ 
+  Convert from YAML in a file
+  out = yamldecode('file', 'mini.yml')
+      out =
+        struct with fields:
+ 
+          a: [1x1 struct]
+          m: 'pancakes'
+ 
+  Note: Not all MATLAB types are currently supported by this converter.
+
+```
+
+##### yamlencode
+
+```notalanguage
+  yamlencode Convert MATLAB variable to YAML
+ 
+  Converts a MATLAB variable to YAML encoding. The output can either be
+  returned or written to a file.
+ 
+  Examples:
+  Return YAML as a string
+ 
+   out = yamlencode(struct('a', pi, 'b', 'Hello'), 'string')
+      out =
+          'a: 3.1415926535897931
+           b: Hello'
+ 
+  Write YAML to a file
+  yamlencode(struct('a', pi, 'b', 'Hello'), 'file', 'myfile.yaml')
+ 
+  Note: Not all MATLAB types are currently supported by this converter.
+
+```
+
 
 
 ------
 
-##### Copyright 2020-2021, The MathWorks, Inc.
+##### Copyright 2020-2022, The MathWorks, Inc.

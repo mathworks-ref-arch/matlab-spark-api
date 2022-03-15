@@ -161,7 +161,24 @@ classdef File < handle
                     error('SparkBuilder:ArgError', 'Only supported for "in" or "out"');
             end
         end
-        
+
+        function names = generatePythonInputArgs(obj, withNargout)
+            if nargin < 2
+                withNargout = false;
+            end
+            names = arrayfun(@(x) sprintf("arg%d", x), (1:obj.nArgIn));
+            names = join(names, ", ");
+            if withNargout && obj.nArgOut > 1
+                names = sprintf("%s, nargout=%d", names, obj.nArgOut);
+            end
+        end
+
+        function names = generatePythonRowInputArgs(obj, varName)
+            formatStr = sprintf("%s[%%d]", varName);
+            names = arrayfun(@(x) sprintf(formatStr, x-1), (1:obj.nArgIn));
+            names = join(names, ", ");
+        end
+
         function [args, types, funcDefinitionArgs] = getArgArray(obj, direction, base)
             %  getArgArray Create array of arguments and their types
             %
@@ -230,6 +247,17 @@ classdef File < handle
             types = [callTypes, obj.getReturnType];
             udfType = sprintf("%s<%s>", udfName, types.join(", "));
             UDF.UDFType = udfType;
+        end
+
+        function names = getInputNameArray(obj)
+            names = string.empty;
+            if isempty(obj.InTypes)
+                return;
+            end
+            if isempty(obj.InTypes(1).Name)
+                return;
+            end
+            names = [obj.InTypes.Name];
         end
     end
     

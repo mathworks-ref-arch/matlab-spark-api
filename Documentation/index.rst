@@ -15,5 +15,6 @@ MATLAB Interface *for Spark API*
    Config
    Usage
    SparkBuilder
+   PythonSparkBuilder
    SparkUI
    SparkApiRef

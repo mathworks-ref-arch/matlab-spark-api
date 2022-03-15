@@ -139,7 +139,7 @@ classdef RESTObject < dynamicprops
                         obj.host = obj.iSanitizeHost(configData.host); % Host (handle trailing characters)
                         obj.cluster_id = configData.cluster_id;
                     else
-                        error('SPARK:ERROR',['Configuration file not found: ', char(configFile)]);
+                        error('SPARK:ERROR','Configuration file not found: %s', char(configFile));
                     end
                 elseif obj.endPointType == sparkui.EndPointType.ApacheSpark
                     % No default file currently supported for Apache Spark
@@ -158,7 +158,7 @@ classdef RESTObject < dynamicprops
                     if isfile(configFile)
                         configData = jsondecode(fileread(configFile));
                     else
-                        error('SPARK:ERROR',['Configuration file not found: ', char(configFile)]);
+                        error('SPARK:ERROR','Configuration file not found: %s', char(configFile));
                     end
                     if obj.endPointType == sparkui.EndPointType.Databricks
                         obj.token = configData.token;

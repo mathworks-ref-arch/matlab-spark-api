@@ -34,8 +34,8 @@ end
 
 members = ismember(response.StatusCode, expRespArray);
 if sum(members) == 0
-    warning(['Response: ', char(getReasonPhrase(getClass(response.StatusCode))),': ',char(getReasonPhrase(response.StatusCode))]);
-    warning(['  Reason: ', char(response.StatusLine.ReasonPhrase)]);
+    warning('SPARK:WARNING','Response: %s : %s', char(getReasonPhrase(getClass(response.StatusCode))), char(getReasonPhrase(response.StatusCode)));
+    warning('SPARK:WARNING','  Reason: %s', char(response.StatusLine.ReasonPhrase));
     tf = true;
 else
     tf = false;
