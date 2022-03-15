@@ -29,9 +29,6 @@ classdef SparkSession < handle
         % Scala Spark Session
         sparkSession;
         
-        % Spark Configuration object of type
-        % org.apache.spark.SparkConf (Java object)
-        sparkConf;        
     end
     
     methods
@@ -52,7 +49,6 @@ classdef SparkSession < handle
             obj.sparkSession = sparkSessionBuilder.getOrCreate();
             
             
-            obj.sparkConf = javaSparkConf;
             obj.SparkServer = char(javaSparkConf.get('spark.master'));
             obj.AppName = char(javaSparkConf.get('spark.app.name'));
             
@@ -65,7 +61,7 @@ classdef SparkSession < handle
         end
         
         function result = getSparkConf(obj)
-            result = obj.sparkConf;
+            result = obj.sparkSession.conf;
         end
                 
         function setLogLevel(obj, logLevel)

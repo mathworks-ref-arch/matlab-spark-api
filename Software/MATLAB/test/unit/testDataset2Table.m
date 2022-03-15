@@ -105,13 +105,12 @@ classdef testDataset2Table < matlab.unittest.TestCase
             testCase.verifyEqual(T.Int16, testCase.table.Int16)
             testCase.verifyEqual(T.Int8, testCase.table.Int8)
             testCase.verifyEqual(T.Logical, testCase.table.Logical)
-            testCase.verifyEqual(T.Date, testCase.table.Date, 'AbsTol', milliseconds(1))
+            testCase.verifyEqual(T.Date, testCase.table.Date, 'AbsTol', milliseconds(10))
             testCase.verifyEqual(T.Duration, testCase.table.Duration)
             testCase.verifyEqual(T.Struct, testCase.table.Struct)
             testCase.verifyEqual(T.Map, testCase.table.Map)
             testCase.verifyEqual(T.Array, testCase.table.Array)
 
-            testCase.verifyEqual(T, testCase.table);
             DS.show, disp(T)
         end
 

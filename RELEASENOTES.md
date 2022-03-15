@@ -1,5 +1,8 @@
 #  MATLAB *Spark API* - Release Notes
 
+## 0.1.23 (14th Mar 2022)
+* Minor fix for SparkSession/SparkConf
+
 ## 0.1.22 (7th Mar 2022)
 * Implement more `sql.functions` methods
 * YAML row/column order
