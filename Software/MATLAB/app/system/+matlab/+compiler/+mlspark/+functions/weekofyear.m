@@ -1,18 +1,29 @@
 function col = weekofyear(inCol)
-    % WEEKOFYEAR Create a week-of-year column from a datetime column
+    % WEEKOFYEAR Create a numeric week-of-year column from a datetime column
     %
-    % This function will return a new colum
+    % This function will return a new column
+    %
     % Example:
     %
     %     % DS is a dataset
     %     % Get datetime column
     %     dtc = DS.col("date")
-    %     % Convert this to a date on the dataset
+    %     % Convert this to a column with week number values
     %     mc = weekofyear(dtc)
-    
-    %                 Copyright 2020 MathWorks, Inc.    
-    
-    col = matlab.compiler.mlspark.Column( ...
-        org.apache.spark.sql.functions.weekofyear(inCol.column) ...
-        );
+
+    % Copyright 2020-2022 MathWorks, Inc.
+
+    try
+        try inCol = inCol.column; catch, end  % col may be a column name or object
+        jcol = org.apache.spark.sql.functions.weekofyear(inCol);
+    catch err
+        error('SPARK:ERROR', 'Spark error: %s', stripJavaError(err.message));
+    end
+    if ~isempty(jcol)
+        col = matlab.compiler.mlspark.Column(jcol);
+    else
+        error('SPARK:ERROR', ...
+            'The Spark %s function only supports an argument that is a matlab.compiler.mlspark.Column object or a column name', ...
+            mfilename);
+    end
 end

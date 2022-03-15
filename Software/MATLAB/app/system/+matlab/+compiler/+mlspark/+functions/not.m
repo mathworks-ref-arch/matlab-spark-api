@@ -1,21 +1,19 @@
-function col = year(inCol)
-    % YEAR Create a numeric year column from a datetime column
-    %
-    % This function will return a new column
+function col = not(inCol)
+    % NOT   Inversion of boolean (logical) expression, i.e. NOT
     %
     % Example:
     %
     %     % DS is a dataset
-    %     % Get datetime column
-    %     dtc = DS.col("date")
-    %     % Convert this to a column with year values
-    %     mc = year(dtc)
+    %     % Get a value column
+    %     dtc = DS.col("x_loc")
+    %     % Convert this to a column with list of inverse logical values
+    %     mc = not(dtc)
 
-    % Copyright 2020-2022 MathWorks, Inc.
+    % Copyright 2021-2022 MathWorks, Inc.
 
     try
         try inCol = inCol.column; catch, end  % col may be a column name or object
-        jcol = org.apache.spark.sql.functions.year(inCol);
+        jcol = org.apache.spark.sql.functions.not(inCol);
     catch err
         error('SPARK:ERROR', 'Spark error: %s', stripJavaError(err.message));
     end

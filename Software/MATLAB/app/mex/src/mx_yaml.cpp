@@ -29,8 +29,6 @@ extern "C"
 #include <fstream>
 #include <sstream>
 
-#include "yaml-cpp/yaml.h"
-
 #include "mx_yaml.h"
 
 static char errorBuf[2048];
@@ -393,7 +391,7 @@ mxArray *yamlNodeSequenceToMX(YAML::Node node)
 
     int sz = node.size();
     descend();
-    mxArray *ret = mxCreateCellMatrix(1, sz);
+    mxArray *ret = mxCreateCellMatrix(sz, 1);
     if (ret == NULL)
     {
         mw_yaml_error("YAML:CREATE_CELL_ERROR", "Problems creating a cell matrix.\n");
@@ -484,7 +482,7 @@ mxArray *cellToTypedArray(mxArray *mxVal)
         break;
     case mxLOGICAL_CLASS:
     {
-        mxArray *typedVal = mxCreateLogicalMatrix(1, N);
+        mxArray *typedVal = mxCreateLogicalMatrix(N, 1);
         // In a mex-function, the previous call will return to MATLAB prompt
         // with an error message, so no checking is necessary.
         bool *typedData = mxGetLogicals(typedVal);
@@ -498,7 +496,7 @@ mxArray *cellToTypedArray(mxArray *mxVal)
     break;
     case mxDOUBLE_CLASS:
     {
-        mxArray *typedVal = mxCreateDoubleMatrix(1, N, mxREAL);
+        mxArray *typedVal = mxCreateDoubleMatrix(N, 1, mxREAL);
         // In a mex-function, the previous call will return to MATLAB prompt
         // with an error message, so no checking is necessary.
         double *typedData = mxGetDoubles(typedVal);
@@ -533,14 +531,25 @@ bool cellIsSingleType(mxArray *mxVal)
     if (N==0) {
         return false;
     }
+
+    /* We check that all types are the same, but also that the length
+     * of each array is exactly 1
+     */
     mxArray *firstElem = mxGetCell(mxVal, 0);
     mxClassID firstId = mxGetClassID(firstElem);
+    int firstNum = mxGetNumberOfElements(firstElem);
+
+    if (firstNum != 1) {
+        return false;
+    }
+
     bool ret = true;
 
     for (int k=1; k<N; k++) {
         mxArray *elem = mxGetCell(mxVal, k);
         mxClassID id = mxGetClassID(elem);
-        if (id != firstId) {
+        int elemNum = mxGetNumberOfElements(elem);
+        if (id != firstId || elemNum != 1) {
             ret = false;
             break;
         }

@@ -11,6 +11,8 @@ extern "C"
 }
 #endif
 
+#include "yaml-cpp/yaml.h"
+
 int getMWSize(const mxArray *mxVal);
 bool isFileArgument(const mxArray *mx);
 

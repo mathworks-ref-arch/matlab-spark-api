@@ -1,5 +1,9 @@
 #  MATLAB *Spark API* - Release Notes
 
+## 0.1.22 (7th Mar 2022)
+* Implement more `sql.functions` methods
+* YAML row/column order
+
 ## 0.1.21 (22nd Feb 2022)
 * Add PythonSparkBuilder feature
 
