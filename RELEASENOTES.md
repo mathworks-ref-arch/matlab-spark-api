@@ -1,5 +1,8 @@
 #  MATLAB *Spark API* - Release Notes
 
+## 0.1.24 (15th Mar 2022)
+* Minor fix to example
+
 ## 0.1.23 (14th Mar 2022)
 * Minor fix for SparkSession/SparkConf
 
@@ -108,4 +111,4 @@
 * First release
 * Major rework to split out the Spark API into a separate repository.
 
-[//]: #  (Copyright 2020-2021 The MathWorks, Inc.)
+[//]: #  (Copyright 2020-2022 The MathWorks, Inc.)
