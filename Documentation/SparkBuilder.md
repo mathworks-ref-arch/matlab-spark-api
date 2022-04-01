@@ -50,8 +50,8 @@ BF = compiler.build.spark.File("myfun.m", {"int64"}, {"int64"});
 ```
 
 > **Note** If the function depends on other MATLAB functions, these will
-get pulled in automatically by the MATLAB Compiler. The dependent functions,
-however, will not be part the external interface of the Java class.
+> get pulled in automatically by the MATLAB Compiler. The dependent functions,
+> however, will not be part the external interface of the Java class.
 
 We then add the function to our Java class, and we add the Java class to the
 `SparkBuilder`.
@@ -208,6 +208,10 @@ J = compiler.build.spark.JavaClass("ClassName", ["datenum", "addFileProtocol"])
 ### The name of the files and their types
 This way of calling the constructor allows the addition of types (and sizes)
 for the input and arguments of the files (cf. the [File](#file) documentation).
+
+> The handling of arguments can also be handled in a different way, described in more
+> detail in [Function Signatures](FunctionSignatures.md). Please refer to this
+> document for additional information.
 
 Here, the second argument will be a cell array, whose entries will be either strings
 or cell arrays.

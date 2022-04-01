@@ -101,6 +101,10 @@ To achieve this a few steps are required. Assuming there is a function `mynormal
 which takes a table of data and normalizes the different columns, provide some additional
 information to this function.
 
+> The inline comments below is one way of handling this. It is also possible to create this
+> information in a separate JSON file, kept alongside the function. This is described in
+> further detail in [Function Signatures](FunctionSignatures.md).
+
 ```matlab
 function outTable = mynormalize(inTable)
     % mynormalize Function that normalizes the columns in a 3-column table

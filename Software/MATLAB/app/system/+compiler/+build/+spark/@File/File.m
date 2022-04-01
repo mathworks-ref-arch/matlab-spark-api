@@ -1,8 +1,8 @@
 classdef File < handle
     % File A class for describing files for Spark compiler
-    
+
     % Copyright 2021 The MathWorks, Inc.
-    
+
     properties
         name string
         funcName string
@@ -12,9 +12,10 @@ classdef File < handle
         ExcludeFromWrapper = false
         InTypes compiler.build.spark.types.ArgType
         OutTypes compiler.build.spark.types.ArgType
-        TableInterface = false
+        TableInterface (1,1) logical  = false
+        ScopedTables (1,1) logical = false
     end
-    
+
     methods
         function obj = File(fileName, inArgs, outArgs)
             % Constructor for File class
@@ -40,16 +41,16 @@ classdef File < handle
             if nargin ~= 1 && nargin ~= 3
                 error("Spark:Error", "Wrong number of input arguments");
             end
-            
+
             obj.name = fileName;
             [funFolder, funName] = fileparts(obj.name);
             obj.funcName = funName;
-            
+
             if strlength(funFolder) > 0
                 oldDir = cd(funFolder);
                 goBack = onCleanup(@() cd(oldDir));
             end
-            
+
             if nargin == 3
                 obj.nArgIn = numel(inArgs);
                 if iscell(inArgs)
@@ -90,48 +91,67 @@ classdef File < handle
                 for k=1:obj.nArgOut
                     obj.OutTypes(k) = compiler.build.spark.types.ArgType.instantiate("Double");
                 end
-                
+
             end
+
+            % This is needed to dedcue if it should be used with MATLAB
+            % tables
+            obj.setTableProperties();
         end
-        
+
         function retType = getReturnType(obj)
-            nOut = obj.nArgOut;
-            if  nOut == 0
-                retType = "void";
-            elseif nOut == 1
-                retType = getReturnType(obj.OutTypes);
-            else
-                types = string.empty;
-                for k=1:nOut
-                    types(k) = getReturnType(obj.OutTypes(k));
+            if obj.TableInterface
+                nOut = length(obj.OutTypes(1).TableCols);
+                if nOut == 1
+                    retType = getReturnType(obj.OutTypes(1).TableCols);
+                else
+                    types = getReturnTypes(obj.OutTypes.TableCols);
+                    retType = sprintf("scala.Tuple%d<%s>", nOut, ...
+                        types.join(", "));
                 end
-                retType = sprintf("scala.Tuple%d<%s>", nOut, ...
-                    types.join(", "));
-                
+            else
+                nOut = obj.nArgOut;
+                if  nOut == 0
+                    retType = "void";
+                elseif nOut == 1
+                    retType = getReturnType(obj.OutTypes);
+                else
+                    types = string.empty;
+                    for k=1:nOut
+                        types(k) = getReturnType(obj.OutTypes(k));
+                    end
+                    retType = sprintf("scala.Tuple%d<%s>", nOut, ...
+                        types.join(", "));
+
+                end
             end
         end
-        
+
         function entry = getEncoderStruct(obj)
             entry = struct(...
                 'Name', obj.funcName + "_encoder", ...
                 'EncType', obj.getReturnType, ...
                 'Constructor', obj.getEncoderCreator);
         end
-        
+
         function enc = getEncoderCreator(obj)
             %  getEncoderCreator Encoder for output of map
-            encEntries = obj.OutTypes.getEncoderCreator;
-            
-            if obj.nArgOut == 1
+            if obj.TableInterface
+                encEntries = obj.OutTypes.TableCols.getEncoderCreator;
+            else
+                encEntries = obj.OutTypes.getEncoderCreator;
+            end
+
+            if length(encEntries) == 1
                 enc = encEntries;
             else
                 enc =  sprintf("Encoders.tuple(%s)", encEntries.join(", "));
             end
         end
-        
+
         function [outType, outTypeDefinition] = getOutSparkType(obj)
             sparkTypes = [obj.OutTypes.SparkType];
-            
+
             if obj.nArgOut == 1
                 outType = "DataTypes." + sparkTypes(1);
                 outTypeDefinition = "";
@@ -149,7 +169,7 @@ classdef File < handle
                 outTypeDefinition = SW.getString();
             end
         end
-        
+
         function names = generateArgNames(obj, direction, base)
             sprintfStr = sprintf("%s%%d", base);
             switch lower(direction)
@@ -159,6 +179,15 @@ classdef File < handle
                     names = arrayfun(@(x) sprintf(sprintfStr, x), (1:obj.nArgOut));
                 otherwise
                     error('SparkBuilder:ArgError', 'Only supported for "in" or "out"');
+            end
+        end
+
+        function names = generateNameList(~, base, num)
+            if num <= 0
+                names = string.empty;
+            else
+                sprintfStr = sprintf("%s%%d", base);
+                names = arrayfun(@(x) sprintf(sprintfStr, x), (1:num));
             end
         end
 
@@ -179,6 +208,56 @@ classdef File < handle
             names = join(names, ", ");
         end
 
+        function str = generatePythonRowIteratorArgs(obj)
+            if obj.TableInterface
+                N = length(obj.InTypes(1).names);
+            else
+                N = obj.nArgIn;
+            end
+            formatStr = sprintf("row[%%d]");
+            names = arrayfun(@(x) sprintf(formatStr, x-1), (1:N));
+            str = join(names, ", ");
+            if N > 1
+                str = "[" + str + "]";
+            end
+        end
+
+        function names = generatePythonTableRestArgs(obj)
+            names = arrayfun(@(x) sprintf("arg%d", x), (1:(obj.nArgIn-1)));
+            names = join(names, ", ");
+        end
+
+        function names = generatePythonTableHelperArgs(obj, name)
+            if nargin < 2
+                name = "IN";
+            end
+            if obj.ScopedTables
+                names = name + ", " + obj.generatePythonTableRestArgs();
+            else
+                names = name;
+            end
+        end
+
+        function names = generateJavaTableHelperArgs(obj, name)
+            if obj.ScopedTables
+                args = obj.generateNameList("arg", obj.nArgIn-1);
+                names = name + ", " + args.join(", ");
+            else
+                names = name;
+            end
+        end
+
+        function names = generateJavaTableTypeHelperArgs(obj)
+            if obj.ScopedTables
+                args = obj.generateNameList("arg", obj.nArgIn-1);
+                types = obj.InTypes(2:end).getFuncArgTypes();
+                typedArgs = arrayfun(@(t,a) t + " " + a, types, args);
+                names = typedArgs.join(", ");
+            else
+                names = string.empty;
+            end
+        end
+
         function [args, types, funcDefinitionArgs] = getArgArray(obj, direction, base)
             %  getArgArray Create array of arguments and their types
             %
@@ -192,12 +271,12 @@ classdef File < handle
             %     "Double"    "Double"
             % c =
             %     "Double arg1, Double arg2"
-            
+
             sprintfStr = sprintf("%s%%d", base);
             switch lower(direction)
                 case 'in'
                     args = arrayfun(@(x) sprintf(sprintfStr, x), (1:obj.nArgIn));
-                    
+
                     types = getPrimitiveJavaType(obj.InTypes);
                 case 'out'
                     args = arrayfun(@(x) sprintf(sprintfStr, x), (1:obj.nArgOut));
@@ -211,16 +290,16 @@ classdef File < handle
                 typeAndArgs = arrayfun(@(t,a) t + " " + a, types, args);
             end
             funcDefinitionArgs = join(typeAndArgs, ", ");
-            
+
         end
-        
+
         function writeMethodComment(obj, funcName, SW)
             SW.pf("/** Function: %s\n", funcName);
             SW.pf(" * Num arg in: %d\n", obj.nArgIn);
             SW.pf(" * Num arg out: %d */\n", obj.nArgOut);
         end
-        
-        function [udfName, udfType, callTypes, UDF] = getUDFInfo(obj)            
+
+        function [udfName, udfType, callTypes, UDF] = getUDFInfo(obj)
             udfName = sprintf("UDF%d", obj.nArgIn);
             UDF.FuncName = udfName;
             callTypes = string.empty;
@@ -260,10 +339,10 @@ classdef File < handle
             names = [obj.InTypes.Name];
         end
     end
-    
+
     methods(Access=private)
         function init(obj)
-            
+
             for k=1:obj.nArgIn
                 if k==1
                     obj.Args.In = getArgEntry('double', 1);
@@ -279,12 +358,15 @@ classdef File < handle
                 end
             end
         end
+
+        % Function to dedcue table settings
+        setTableProperties(obj)
     end
 end
 
 function entry = getArgEntry(mwArgType, argSize)
     entry = matlab.sparkutils.datatypeMapper('matlab', mwArgType);
-    
+
     entry.Size = argSize;
 end
 

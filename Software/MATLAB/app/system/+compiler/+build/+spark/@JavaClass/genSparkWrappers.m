@@ -88,7 +88,14 @@ function rowIteratorToMWCell(JW, file, baseClassName, wrapperName, useMetrics)
     if useMetrics
         SW.pf('wrapperInstance.tic("rowIterator");\n');
     end
-    SW.pf('int numCols = %d;\n', file.nArgIn);
+    if file.TableInterface
+        caVec = file.InTypes(1).TableCols;
+
+    else
+        caVec = file.InTypes;
+    end
+    numCols = length(caVec);
+    SW.pf('int numCols = %d;\n', numCols);
     SW.pf('ArrayList<Row> sparkRows = new ArrayList<Row>();\n');
     SW.pf('while (rowIterator.hasNext()) {\n');
     SW.indent();
@@ -113,15 +120,15 @@ function rowIteratorToMWCell(JW, file, baseClassName, wrapperName, useMetrics)
     SW.pf('java.util.List<Object> args = rowToJavaList(sparkRows.get(k));\n')
     SW.pf('idx[0] = k + 1;\n');
     
-    for ka = 1:file.nArgIn
-        CA = file.InTypes(ka);
+    for ka = 1:numCols
+        CA = caVec(ka);
         SW.pf('idx[1] = %d;\n', ka);
         SW.pf("mwCell.set(idx, %s);\n", ...
             CA.instantiateMWValue(sprintf("args.get(%d)", ka-1), ...
             true ... Cast arguments explicitly
             ));
     end
-    
+
     SW.unindent();
     SW.pf('}\n');
     if useMetrics
@@ -174,12 +181,6 @@ function plainFunctionWrapper(JW, file, baseClassName)
     SW.pf(" */\n");
     %         file.writeMethodComment(funcName, SW);
     
-    retType = file.getReturnType;
-    inArgNames = file.generateArgNames('in', 'arg');
-    inMWArgNames = file.generateArgNames('in', 'marg');
-    retValNames = file.generateArgNames('out', 'ret');
-    inArgTypes = file.InTypes.getFuncArgTypes;
-    retArgTypes = file.OutTypes.getReturnTypes;
     funcSignature = join( ...
         ... Strings
         arrayfun(@(T, A) T + " " + A, inArgTypes, inArgNames), ...
@@ -454,7 +455,9 @@ function mapPartitionsTableWrapper(JW, file, baseClassName, wrapperName, useMetr
     retType = file.getReturnType();
     mapFuncName = file.funcName + "_mapPartitions";
     SW = JW.newMethod();
-    SW.pf("public static MapPartitionsFunction<Row, %s> %s() {\n", retType, mapFuncName);
+    typedArgs = file.generateJavaTableTypeHelperArgs();
+    SW.pf("public static MapPartitionsFunction<Row, %s> %s(%s) {\n", ...
+        retType, mapFuncName, typedArgs);
     SW.indent();
     SW.pf("return new MapPartitionsFunction<Row, %s>() {\n", retType);
     SW.indent();
@@ -462,10 +465,31 @@ function mapPartitionsTableWrapper(JW, file, baseClassName, wrapperName, useMetr
     SW.indent();
     SW.pf("ArrayList<%s> retList = new ArrayList<%s>();\n", retType, retType);
     SW.pf('MWCellArray mwCell = null;\n');
+    % Add local variables for the case when we have additional arguments
+    % Declare variables
+    inMWArgNames = file.generateNameList("marg", file.nArgIn-1);
+    inArgNames = file.generateNameList("arg", file.nArgIn-1);
+    mwArgString = inMWArgNames.join(", ");
+    if ~isempty(mwArgString)
+        mwArgString = ", " + mwArgString;
+    end
+    for ka = 2:file.nArgIn
+        CA = file.InTypes(ka);
+        SW.pf("%s %s = null;\n", CA.getMWArgType, inMWArgNames(ka-1));
+    end
+
     SW.pf("try {\n");
     SW.indent();
     SW.pf("%s wrapperInstance = getInstance();\n", wrapperName);    
     SW.pf("%s instance = wrapperInstance.baseClass;\n", baseClassName);
+
+    SW.pf("/* Instantiate MW additional variables from function arguments */\n");
+    for ka = 2:file.nArgIn
+        CA = file.InTypes(ka);
+        SW.pf("%s = %s;\n", ...
+            inMWArgNames(ka-1), CA.instantiateMWValue(inArgNames(ka-1)));
+    end
+
     if useMetrics
         SW.pf('wrapperInstance.tic("rowIteratorToMWCell_%s");\n', file.funcName);
     end
@@ -476,11 +500,12 @@ function mapPartitionsTableWrapper(JW, file, baseClassName, wrapperName, useMetr
     end
 
     if useMetrics
-        SW.pf('wrapperInstance.tic("instance.%s_partition");\n', file.funcName);
+        SW.pf('wrapperInstance.tic("instance.%s_table");\n', file.funcName);
     end
-    SW.pf('Object[] objResult = instance.%s_partition(1, mwCell);\n', file.funcName);
+    SW.pf('Object[] objResult = instance.%s_table(1, mwCell%s);\n', ...
+        file.funcName, mwArgString);
     if useMetrics
-        SW.pf('wrapperInstance.toc("instance.%s_partition");\n\n', file.funcName);
+        SW.pf('wrapperInstance.toc("instance.%s_table");\n\n', file.funcName);
     end
 
     if useMetrics
@@ -495,15 +520,22 @@ function mapPartitionsTableWrapper(JW, file, baseClassName, wrapperName, useMetr
     SW.indent();
     SW.pf('idx[0] = k + 1;\n');
 
-    retValNames = file.generateArgNames('out', 'ret');
-    for ka = 1:file.nArgOut
-        CA = file.OutTypes(ka);
+%     retValNames = file.generateArgNames('out', 'ret');
+    if file.TableInterface
+        caVec = file.OutTypes.TableCols;
+    else
+        caVec = file.OutTypes;
+    end
+    numOut = length(caVec);
+    retValNames = file.generateNameList('ret', numOut);
+    for ka = 1:numOut
+        CA = caVec(ka);
         SW.pf('idx[1] = %d;\n', ka);
         SW.pf("%s %s = %s;\n", ...
             CA.getReturnType, retValNames(ka), ...
             CA.convertMWToRetValue("result.getCell(idx)"));
     end
-    if file.nArgOut == 1
+    if numOut == 1
         SW.pf("retList.add(%s);\n", retValNames);
     else
         SW.pf("retList.add(new %s(%s));\n", ...

@@ -53,13 +53,8 @@ classdef PythonSparkBuilder < handle
                 if iscell(file)
                     F = compiler.build.spark.File(file{:});
                 else
-                    [raw, args]  = getFileArguments(obj, file);
+                    [raw, args]  = compiler.build.spark.types.getFileArgumentInfo(file);
                     F = compiler.build.spark.File(file, args{:});
-                    if ~isempty(raw)
-                        if isfield(raw, 'TableInterface') 
-                            F.TableInterface = raw.TableInterface;
-                        end
-                    end
                 end
             end
 
@@ -111,6 +106,16 @@ classdef PythonSparkBuilder < handle
                 if isfield(raw, 'InTypes') && isfield(raw, 'OutTypes')
                     args = {raw.InTypes, raw.OutTypes};
                 end
+            end
+            if isempty(raw)
+                % If datatype information is not in the comments, it may be
+                % in an external JSON file 
+                jsonFileName = compiler.build.spark.internal.getJSONName(file);
+                if isfile(jsonFileName)
+                    raw = jsondecode(fileread(jsonFileName));
+                    args = {raw.InTypes, raw.OutTypes};
+                end
+
             end
 
         end

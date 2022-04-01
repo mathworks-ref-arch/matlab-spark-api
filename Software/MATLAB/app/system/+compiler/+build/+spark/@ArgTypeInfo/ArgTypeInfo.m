@@ -1,7 +1,9 @@
 classdef ArgTypeInfo < handle
-    % ArgTypeInfo TODO
-    
-    % Copyright 2021 The MathWorks, Inc.
+    % ArgTypeInfo Handle types during code generation
+    %
+    % Note: This class is deprecated.
+
+    % Copyright 2021-2022 The MathWorks, Inc.
     
     properties (SetAccess = private)
         MATLABType string

@@ -16,5 +16,6 @@ MATLAB Interface *for Spark API*
    Usage
    SparkBuilder
    PythonSparkBuilder
+   FunctionSignatures
    SparkUI
    SparkApiRef

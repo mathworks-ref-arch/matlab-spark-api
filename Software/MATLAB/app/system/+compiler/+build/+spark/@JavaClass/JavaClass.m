@@ -1,7 +1,10 @@
 classdef JavaClass < handle
-    % JAVACLASS TODO
+    % JAVACLASS Class for generating a Javaclass with MATLAB Compiler SDK
+    %
+    % This class contains methods for adapting the generated code of the
+    % corrsponding Java files.
     
-    % Copyright 2021 The MathWorks, Inc.
+    % Copyright 2021-2022 The MathWorks, Inc.
     
     properties (SetAccess = private)
         name string
@@ -48,7 +51,8 @@ classdef JavaClass < handle
                 if iscell(file)
                     F = compiler.build.spark.File(file{:});
                 else
-                    F = compiler.build.spark.File(file);
+                    [raw, args]  = compiler.build.spark.types.getFileArgumentInfo(file);
+                    F = compiler.build.spark.File(file, args{:});
                 end
             end
             if ephemeral
@@ -105,15 +109,20 @@ classdef JavaClass < handle
                 if F.ExcludeFromWrapper
                     continue
                 end
-                partitionName = F.funcName + "_partition";
-                if ismember(partitionName, fileNames)
-                    % This has already been generated
-                    continue;
-                end
                 
                 if F.TableInterface
+                    partitionName = F.funcName + "_table";
+                    if ismember(partitionName, fileNames)
+                        % This has already been generated
+                        continue;
+                    end
                     outName = genPartitionTableFile(obj, F, partitionName);
                 else
+                    partitionName = F.funcName + "_partition";
+                    if ismember(partitionName, fileNames)
+                        % This has already been generated
+                        continue;
+                    end
                     outName = genPartitionFile(obj, F, partitionName);
                 end
                 newFile = compiler.build.spark.File(outName, {'double'}, {'double'});
@@ -166,7 +175,7 @@ classdef JavaClass < handle
             
             SW = matlab.sparkutils.StringWriter(outName);
             
-            SW.pf("function RESULT = %s(cellTable)\n", partitionName);
+            SW.pf("function RESULT = %s(%s)\n", partitionName, F.generateJavaTableHelperArgs("cellTable"));
             SW.indent();
             SW.pf('%% %s Generated function for use with mapPartition method\n', partitionName);
             SW.pf('%%\n');
@@ -174,11 +183,12 @@ classdef JavaClass < handle
             SW.pf('%% It assumes the underlying function takes a table and returns a table.\n\n');
             SW.pf('T_IN = cell2table(cellTable, ...\n');
             SW.indent();
-            inputNames = [F.InTypes.Name];
+            inputNames = F.InTypes(1).names;
             inputString = arrayfun(@(x) sprintf("""%s""", x), inputNames).join(", ");
             SW.pf('"VariableNames", [%s]);\n\n', inputString);
             SW.unindent();
-            SW.pf('T_OUT = %s(T_IN);\n\n', F.funcName);
+            SW.pf('T_OUT = %s(%s);\n\n', F.funcName, ...
+                F.generateJavaTableHelperArgs("T_IN"));
             SW.pf('RESULT = table2cell(T_OUT);\n\n');
             SW.unindent();
             SW.pf("end\n\n");

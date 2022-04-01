@@ -1,5 +1,10 @@
 #  MATLAB *Spark API* - Release Notes
 
+## 0.1.25 (30th Mar 2022)
+* Enabling additional arguments for Table functions
+* Provide helper functions for Compiler workflows
+* Add `na` method for dataset
+
 ## 0.1.24 (15th Mar 2022)
 * Minor fix to example
 

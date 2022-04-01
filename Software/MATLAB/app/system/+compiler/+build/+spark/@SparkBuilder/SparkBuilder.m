@@ -78,9 +78,7 @@ classdef SparkBuilder < handle
             end
             obj.log("Create output folder '%s'", obj.outputFolder);
             mkdir(obj.outputFolder);
-            
-            clearTempPathsAfter = onCleanup(@() clearTempPaths(obj));
-            
+                       
             genPartitionHelpers(obj);
             
             mccStr = mccCommand(obj);
@@ -119,6 +117,12 @@ classdef SparkBuilder < handle
             fprintf('Compile: \n');
             [rc,sc] = obj.runCommand(adaptCompileCmd(obj));
             
+            % Add this small Jar inline, to make deployment easier
+            fprintf('Add matlab-spark-utility classes\n');
+            sparkUtility = matlab.sparkutils.getMatlabSparkUtilityFullName('fullpath', true, 'shaded', false);
+            classDir = fullfile(obj.outputFolder, 'classes');
+            unzip(sparkUtility, classDir)
+
             fprintf('Jar: \n');
             [rj,sj] = obj.runCommand(obj.jarCmd);
             
@@ -203,8 +207,7 @@ classdef SparkBuilder < handle
             %     return;
             % end
 
-            obj.GenMatlabDir = fullfile(obj.outputFolder, ...
-                ['matlab_', datestr(now,30)]);
+            obj.GenMatlabDir = fullfile(obj.outputFolder, 'matlab_helpers');
             if ~exist(obj.GenMatlabDir, 'dir')
                 mkdir(obj.GenMatlabDir);
             end
@@ -217,7 +220,7 @@ classdef SparkBuilder < handle
     end
     methods (Hidden)
         function genJavaCommands(obj)
-            % TODO: May make more sense to generate the commands like this,
+            % May make more sense to generate the commands like this,
             % instead of doing text replacement in the parsed ones.
             %  compileCmd: '"/usr/lib/jvm/java-8-openjdk-amd64/bin/javac" -J-Xmx196M -verbose
             %               -classpath "/local/MATLAB/R2021a/toolbox/javabuilder/jar/javabuilder.jar"
@@ -332,14 +335,6 @@ classdef SparkBuilder < handle
             jFiles = findFileRecursively(obj.package, '.*.java');
         end
         
-        function clearTempPaths(obj)
-           if ~isempty(obj.GenMatlabDir)
-               if isfolder(obj.GenMatlabDir)
-                   rmdir(obj.GenMatlabDir, 's');
-               end
-               obj.GenMatlabDir = '';
-           end
-        end
     end
     
     methods % Getters and Setters

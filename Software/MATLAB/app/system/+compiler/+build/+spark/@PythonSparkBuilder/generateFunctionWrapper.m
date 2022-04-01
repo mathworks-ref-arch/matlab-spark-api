@@ -38,58 +38,83 @@ function generateFunctionWrapper(obj, SW, fileObj)
     SW.indent();
     SW.pf("for row in iterator:\n")
     SW.indent();
-    if fileObj.nArgIn == 1
-        SW.pf("yield %s\n\n", fileObj.generatePythonRowInputArgs("row"));
-    else
-        SW.pf("yield [%s]\n\n", fileObj.generatePythonRowInputArgs("row"));
-    end
+    SW.pf("yield %s\n\n", fileObj.generatePythonRowIteratorArgs());
     SW.unindent();
     SW.unindent();
 
     % =========== mapPartitions (fast) ===========
-    SW.pf("@staticmethod\n");
-    SW.pf("# A call to the MATLAB function %s\n", fileObj.funcName);
-    SW.pf("# The input argument in this case is an iterator\n");
-    SW.pf("# It is used as argument e.g. to mapPartition\n");
-    SW.pf("def %s_iterator(iterator):\n", fileObj.funcName);
-    SW.indent();
-    SW.pf("instance = %s.getInstance()\n", obj.WrapperClassName);
-    SW.pf("rows = list(%s.%s_iterator_rows(iterator))\n", obj.WrapperClassName, fileObj.funcName);
-    SW.pf("results = instance.RT.%s_iterator(rows)\n", fileObj.funcName);
-    SW.pf("# results = list(iterator)\n")
-    SW.pf("return iter(results)\n\n")
-    SW.unindent();
-
-    % =========== Table function ===========
-    if fileObj.TableInterface
+    if ~fileObj.TableInterface
+        % Don't create a simple iterator for table interfaces
         SW.pf("@staticmethod\n");
         SW.pf("# A call to the MATLAB function %s\n", fileObj.funcName);
         SW.pf("# The input argument in this case is an iterator\n");
         SW.pf("# It is used as argument e.g. to mapPartition\n");
-        SW.pf("def %s_table(iterator):\n", fileObj.funcName);
+        SW.pf("def %s_iterator(iterator):\n", fileObj.funcName);
         SW.indent();
         SW.pf("instance = %s.getInstance()\n", obj.WrapperClassName);
         SW.pf("rows = list(%s.%s_iterator_rows(iterator))\n", obj.WrapperClassName, fileObj.funcName);
-        SW.pf("results = instance.RT.%s_table(rows)\n", fileObj.funcName);
+        SW.pf("results = instance.RT.%s_iterator(rows)\n", fileObj.funcName);
         SW.pf("# results = list(iterator)\n")
         SW.pf("return iter(results)\n\n")
         SW.unindent();
     end
+    % =========== Table function ===========
+    if fileObj.TableInterface
+        if fileObj.ScopedTables
+            SW.pf("@staticmethod\n");
+            SW.pf("# A call to the MATLAB function %s\n", fileObj.funcName);
+            SW.pf("# The input arguments in this case are the additional\n");
+            SW.pf("# arguments, apart from the table, that gives the scope (context)\n");
+            SW.pf("# of the calculation.\n");
+            SW.pf("# This function returns a function handle to be used by\n");
+            SW.pf("# a mapIteration method.\n");
+            extraArgs = fileObj.generatePythonTableRestArgs;
+            SW.pf("def %s_table(%s):\n", fileObj.funcName, extraArgs);
+            SW.indent();
+            innerName = sprintf("%s_table_inner", fileObj.funcName);
+            SW.pf("def %s(iterator):\n", innerName);
+            SW.indent();
+            SW.pf("nonlocal %s\n", extraArgs);
+            SW.pf("instance = %s.getInstance()\n", obj.WrapperClassName);
+            SW.pf("rows = list(%s.%s_iterator_rows(iterator))\n", obj.WrapperClassName, fileObj.funcName);
+            SW.pf("results = instance.RT.%s_table(rows, %s)\n", fileObj.funcName, extraArgs);
+            SW.pf("# results = list(iterator)\n")
+            SW.pf("return iter(results)\n\n")
+            SW.unindent();
+            SW.pf("return %s\n\n", innerName);
+            SW.unindent();
+        else
+            SW.pf("@staticmethod\n");
+            SW.pf("# A call to the MATLAB function %s\n", fileObj.funcName);
+            SW.pf("# The input argument in this case is an iterator\n");
+            SW.pf("# It is used as argument e.g. to mapPartition\n");
+            SW.pf("def %s_table(iterator):\n", fileObj.funcName);
+            SW.indent();
+            SW.pf("instance = %s.getInstance()\n", obj.WrapperClassName);
+            SW.pf("rows = list(%s.%s_iterator_rows(iterator))\n", obj.WrapperClassName, fileObj.funcName);
+            SW.pf("results = instance.RT.%s_table(rows)\n", fileObj.funcName);
+            SW.pf("# results = list(iterator)\n")
+            SW.pf("return iter(results)\n\n")
+            SW.unindent();
+        end
+    end
     
     % =========== mapPartitions (slow) ===========
-    SW.pf("@staticmethod\n");
-    SW.pf("# A call to the MATLAB function %s\n", fileObj.funcName);
-    SW.pf("# The input argument in this case is an iterator\n");
-    SW.pf("# It is used as argument e.g. to mapPartition\n");
-    SW.pf("def %s_iterator_slow(iterator):\n", fileObj.funcName);
-    SW.indent();
-    SW.pf("for elem in iterator:\n");
-    SW.indent();
-    SW.pf("yield Wrapper.%s(%s)\n\n", ...
-        fileObj.funcName, ...
-        fileObj.generatePythonRowInputArgs("elem"));
-    SW.unindent();
-    SW.unindent();
+    % Don't do this anymore. It's the poor man's version, not used anymore,
+    % since very slow.
+    % SW.pf("@staticmethod\n");
+    % SW.pf("# A call to the MATLAB function %s\n", fileObj.funcName);
+    % SW.pf("# The input argument in this case is an iterator\n");
+    % SW.pf("# It is used as argument e.g. to mapPartition\n");
+    % SW.pf("def %s_iterator_slow(iterator):\n", fileObj.funcName);
+    % SW.indent();
+    % SW.pf("for elem in iterator:\n");
+    % SW.indent();
+    % SW.pf("yield Wrapper.%s(%s)\n\n", ...
+    %     fileObj.funcName, ...
+    %     fileObj.generatePythonRowInputArgs("elem"));
+    % SW.unindent();
+    % SW.unindent();
 
 end
 

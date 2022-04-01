@@ -58,6 +58,8 @@ classdef ArgType < handle & matlab.mixin.Heterogeneous
                     javaType = "Boolean";
                 case "string"
                     javaType = "String";
+                case "table"
+                    javaType = "Table";
                 otherwise
                     error("SparkBuilder:DataTypes", ...
                         "Unsupported datatype: '%s'\n", typeName);
@@ -261,6 +263,10 @@ classdef ArgType < handle & matlab.mixin.Heterogeneous
         function init(obj)
             cls = string(class(obj));
             parts = cls.split(".");
+            if parts(end)=="Table"
+                % Tables are handled separately
+                return;
+            end
             E = matlab.sparkutils.datatypeMapper("java", parts(end));
             obj.JavaType = E.JavaType;
             obj.PrimitiveJavaType = E.PrimitiveJavaType;

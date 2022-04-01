@@ -59,7 +59,7 @@ function generateTable(obj, F)
 
     SW = matlab.sparkutils.StringWriter(fullFileName);
 
-    SW.pf("function OUT = %s(IN)\n", funcName)
+    SW.pf("function OUT = %s(%s)\n", funcName, F.generatePythonTableHelperArgs());
     SW.indent();
     SW.pf("%% %s Helper function for %s\n\n", funcName, F.funcName);
 
@@ -71,7 +71,7 @@ function generateTable(obj, F)
     SW.pf("reshapedCells = reshape([IN{:}], numCols, N)';\n");
     SW.pf("IN_T = cell2table(reshapedCells);\n\n");
     
-    inputNames = F.getInputNameArray();
+    inputNames = F.InTypes(1).names;
     if ~isempty(inputNames)
         SW.pf("IN_T.Properties.VariableNames = ...\n");
         SW.indent();
@@ -80,7 +80,7 @@ function generateTable(obj, F)
     end
 
     SW.pf("%% Run the actual algorithm\n");
-    SW.pf("OUT_T = %s(IN_T);\n\n", F.funcName);
+    SW.pf("OUT_T = %s(%s);\n\n", F.funcName, F.generatePythonTableHelperArgs("IN_T"));
 
     SW.pf("%% Create a cell array with the same size as the table\n")
     SW.pf("OUT_C = table2cell(OUT_T);\n\n");
