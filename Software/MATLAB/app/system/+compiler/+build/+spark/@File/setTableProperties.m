@@ -18,6 +18,7 @@ function setTableProperties(obj)
         % Case 1
         obj.TableInterface = false;
         obj.ScopedTables = false;
+        obj.PandaSeries = obj.nArgOut == 1;
         return;
     end
     if ~isempty(inIdx) || ~isempty(outIdx)
@@ -30,6 +31,7 @@ function setTableProperties(obj)
                     'which should be of type table.']);
             end
             obj.TableInterface = true;
+            obj.PandaSeries = false;
             if length(inTypes) > 1
                 % Case 3
                 if inIdx==1

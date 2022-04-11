@@ -12,8 +12,11 @@ classdef File < handle
         ExcludeFromWrapper = false
         InTypes compiler.build.spark.types.ArgType
         OutTypes compiler.build.spark.types.ArgType
+    end
+    properties (SetAccess = private)
         TableInterface (1,1) logical  = false
-        ScopedTables (1,1) logical = false
+        ScopedTables   (1,1) logical = false
+        PandaSeries    (1,1) logical = false
     end
 
     methods
@@ -191,12 +194,12 @@ classdef File < handle
             end
         end
 
-        function names = generatePythonInputArgs(obj, withNargout)
+        function [names, namesArray] = generatePythonInputArgs(obj, withNargout)
             if nargin < 2
                 withNargout = false;
             end
-            names = arrayfun(@(x) sprintf("arg%d", x), (1:obj.nArgIn));
-            names = join(names, ", ");
+            namesArray = arrayfun(@(x) sprintf("arg%d", x), (1:obj.nArgIn));
+            names = join(namesArray, ", ");
             if withNargout && obj.nArgOut > 1
                 names = sprintf("%s, nargout=%d", names, obj.nArgOut);
             end
@@ -236,6 +239,12 @@ classdef File < handle
             else
                 names = name;
             end
+        end
+
+        function schema = generatePythonPandasSchema(obj)
+            OT = obj.OutTypes;
+            strArr = arrayfun(@(x) sprintf("%s %s", x.Name, x.PrimitiveJavaType), OT.TableCols);
+            schema = strArr.join(", ");
         end
 
         function names = generateJavaTableHelperArgs(obj, name)

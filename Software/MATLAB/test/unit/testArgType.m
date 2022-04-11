@@ -1,4 +1,4 @@
-classdef testArgTypeInfo < matlab.unittest.TestCase
+classdef testArgType < matlab.unittest.TestCase
     % testArgTypeInfo Unit tests for the ArgTypeInfo class
     
     % Copyright 2021 MathWorks, Inc.
@@ -9,19 +9,10 @@ classdef testArgTypeInfo < matlab.unittest.TestCase
     end
     
     methods (Test)
-        function testNoArgs(testCase)
-
-            A = compiler.build.spark.ArgTypeInfo();
-            
-            testCase.assertEqual(A.MATLABType, "double");
-            sz = [1,1];
-            testCase.assertTrue(all(A.Size==sz));
-            
-        end
-        
+      
         function testTypeArg(testCase, Type)
            
-            A = compiler.build.spark.ArgTypeInfo(Type);
+            A = compiler.build.spark.types.ArgType.instantiate(Type);
             testCase.assertEqual(A.MATLABType, Type);
             
             sz = [1,1];
@@ -31,7 +22,7 @@ classdef testArgTypeInfo < matlab.unittest.TestCase
         
         function testTypeAndSizeArg(testCase, Type, Size)
            
-            A = compiler.build.spark.ArgTypeInfo(Type, Size);
+            A = compiler.build.spark.types.ArgType.instantiate(Type, Size);
             testCase.assertEqual(A.MATLABType, Type);
             
             testCase.assertTrue(all(A.Size==Size));

@@ -18,6 +18,7 @@ classdef ArgType < handle & matlab.mixin.Heterogeneous
         Size double
         JavaType string
         PrimitiveJavaType string
+        PythonType string
         SparkType string
         Encoder string
         MWClassID string
@@ -270,6 +271,7 @@ classdef ArgType < handle & matlab.mixin.Heterogeneous
             E = matlab.sparkutils.datatypeMapper("java", parts(end));
             obj.JavaType = E.JavaType;
             obj.PrimitiveJavaType = E.PrimitiveJavaType;
+            obj.PythonType = E.PythonType;
             obj.SparkType = E.SparkType;
             obj.Encoder = E.Encoders;
             obj.MWClassID = E.MWClassID;

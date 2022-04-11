@@ -4,8 +4,8 @@ Apache Spark™ is a unified analytics engine for large-scale data processing.
 
 This repository is not meant for direct consumption. It is used by the projects
 
-* MATLAB&reg; Interface *for Databricks*™, and
-* MATLAB Interface *for Apache Spark*
+* [MATLAB&reg; Interface *for Databricks*™](https://www.mathworks.com/databricks), and
+* [MATLAB Interface *for Apache Spark*](https://github.com/mathworks-ref-arch/matlab-apache-spark)
 
 and it contains an implementation of the Apache Spark APIs that
 are used by both the projects mentioned above.

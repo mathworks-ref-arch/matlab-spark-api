@@ -24,14 +24,16 @@ function entry = datatypeMapper( from, name )
     
     % Copyright 2021 MathWorks, Inc.
     
-    persistent ML JV SP DB
+    persistent ML JV SP DB PY
     
     if isempty(ML)
         DB = initDB();
         ML = [DB.MATLABType];
         JV = [DB.JavaType];
         SP = [DB.SparkType];
+        PY = [DB.PythonType];
     end
+
     if nargin == 0
         entry = struct2table(DB);
         return;
@@ -85,10 +87,16 @@ function E = addEntry(mlType, javaType, primJavaType, sparkType, encoder, mwGet)
                 % For versions earlier than R2020b, there was no MWStringArray
                 mwType = "MWCharArray";
             end
+            pyType = "str";
         case "logical"
             mwType = "MWLogicalArray";
-        case {"double", "single", "int64", "int32", "int16"}
+            pyType = "bool";
+        case {"double", "single"}
             mwType = "MWNumericArray";
+            pyType = "float";
+        case {"int64", "int32", "int16"}
+            mwType = "MWNumericArray";
+            pyType = "int";
         otherwise
             error("Spark:Error", "Bad MATLAB type, %s\n", mlType);
     end
@@ -96,6 +104,7 @@ function E = addEntry(mlType, javaType, primJavaType, sparkType, encoder, mwGet)
         "MATLABType", mlType, ...
         "JavaType", javaType, ...
         "PrimitiveJavaType", primJavaType, ...
+        "PythonType", pyType, ...
         "SparkType", sparkType, ...
         "Encoders", encoder, ...
         "MWClassID", "MWClassID." + upper(mlType), ...

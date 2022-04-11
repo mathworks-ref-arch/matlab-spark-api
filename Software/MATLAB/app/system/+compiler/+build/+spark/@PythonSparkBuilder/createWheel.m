@@ -7,7 +7,7 @@ function createWheel(obj)
     old = cd(obj.OutputDir);
     goBack = onCleanup(@() cd(old));
 
-    [r,s] = system("python3 setup.py bdist_wheel");
+    [r,s] = system("python setup.py bdist_wheel");
     if r ~= 0
         disp(s);
         error('SPARK_API:wheel_creation_error', ...

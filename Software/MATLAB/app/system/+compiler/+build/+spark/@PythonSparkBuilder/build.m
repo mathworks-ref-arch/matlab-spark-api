@@ -9,6 +9,7 @@ function build(obj, options)
         options.clean (1,1) logical = true
         options.genHelpers (1,1) logical = true
         options.genWrappers (1,1) logical = true
+        options.createWheel (1,1) logical = true
     end
 
     if options.clean
@@ -33,9 +34,11 @@ function build(obj, options)
     end
 
     % Now package all the functions in a wheel
-    obj.createWheel();
+    if options.createWheel
+        obj.createWheel();
 
-    % Create a shell-file for easy testing in local Spark
-    obj.generateSparkShellHelper();
+        % Create a shell-file for easy testing in local Spark
+        obj.generateSparkShellHelper();
+    end
 
 end

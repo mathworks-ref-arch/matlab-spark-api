@@ -42,17 +42,31 @@ demo.anomaly-9.11.0-py3-none-any.whl
 If this wheel file is used in a Spark/Databricks environment, the following
 steps are required:
 
+### Providing the Wheel file to the cluster
+To run the file, it must be available on the cluster, and different clusters 
+may have different options for this.
+
+In the case of Databricks, a method on the result object of the build can be
+used to upload and install this on a Databricks cluster.
+ The output was named `OUT` in the previous example:
+```matlab
+OUT.uploadWheelToDatabricks("/some/folder", cluster_id);
+```
+Please note that this is currently only possible for DBFS.
+
 ### Importing to the environment
 
-There is always a class generated, `Wrapper`, which is needed to call the functions.
+The functions to use with Spark will be created in a module called `wrapper`. In order to
+call a specific function, import it from the package.
+
 ```python
 # First, import the Wrapper class of this package
-from demo.anomaly.wrapper import Wrapper as W
+from demo.anomaly.wrapper import detectAnomaly
 ```
 ### Calling a simple function
 ```python
 # Test the function detectAnomaly
-T = W.detectAnomaly(3,4,5)
+T = detectAnomaly(3,4,5)
 ```
 
 The result of the last operation will be a tuple, as there were two outputs.
@@ -69,7 +83,8 @@ To run a map function on every row of this dataset, it can be done as follows.
 Please note that `_rows` is added to the name of the function.
 ```python
 # Assume the data is in the columns A, B and C
-df2 = df.select("A", "B", "C").rdd.map(W.detectAnomaly_rows).toDF(["X", "Y"])
+from demo.anomaly.wrapper import detectAnomaly_rows
+df2 = df.select("A", "B", "C").rdd.map(detectAnomaly_rows).toDF(["X", "Y"])
 ```
 This will return a new dataframe with the columns X and Y, with the results of the
 calculations.
@@ -78,10 +93,11 @@ calculations.
 The previous example will call the MATLAB Runtime once for every row. If instead one uses the
 `mapPartition` method, it uses a data partition, and can run it all in one batch
 in the compiled MATLAB function.
-Please note that in this case, the added `_iterator` in the name of the function.
+Please note in this case the added `_iterator` in the name of the function.
 ```python
 # Assume the data is in the columns A, B and C
-df2 = df.select("A", "B", "C").rdd.mapPartitions(W.detectAnomaly_iterator).toDF(["X", "Y"])
+from demo.anomaly.wrapper import detectAnomaly_iterator
+df2 = df.select("A", "B", "C").rdd.mapPartitions(detectAnomaly_iterator).toDF(["X", "Y"])
 ```
 
 In this case, the MATLAB Runtime is called fewer times, which can speed up calculations.
@@ -153,11 +169,65 @@ To do this, use the `mapPartitions` method, and also add `_table` to the functio
 
 ```python
 # Assume the data is in the columns A, B and C
-df2 = df.select("A", "B", "C").rdd.mapPartitions(W.detectAnomaly_table).toDF(["X", "Y"])
+from demo.anomaly.wrapper import detectAnomaly_table
+df2 = df.select("A", "B", "C").rdd.mapPartitions(detectAnomaly_table).toDF(["X", "Y"])
 ```
 
 The return values from `mapPartitions` is still a dataset with two columns. 
 The *table* is a MATLAB table.
+
+### Running Pandas on a table function
+It's also possible to run Pandas functions on a Table function. Pandas wrappers will automatically
+be generated, and can be called like in the following example. Here 2 functions are shown,
+`myfunction` which takes a table as input and a table as output, and myotherfunction, which takes a table and a constant
+as input, and a table as output.
+
+The `wrapper` also contains constants with the output schemas for the pandas functions.
+
+```python
+from demo.anomaly.wrapper import myfunction_pandas, myfunction_pandas_schema
+
+# This function has an interface like Tout = myfunction(Tin)
+df3_fix = df3.groupby("cat").applyInPandas(
+    myfunction_pandas, schema=myfunction_pandas_schema)
+
+# This function has an interface like Tout = myotherfunction(Tin, sigma)
+# Sigma is just a constant, and not a table.
+df3_fix2 = df3.groupby("cat").applyInPandas(
+    myotherfunction_pandas(10000.0), schema=myotherfunction_pandas_schema)
+```
+
+### Running Pandas series as a UDF
+If one of the generated MATLAB functions
+* doesn't use tables for inputs or outputs, and
+* only has one output
+
+a `_series` function will be generated. It is a function that works on `pandas.Series` objects,
+and can be used as a UDF.
+
+As an example, this (overly) simple function adds to numbers and returns the sum:
+```matlab
+function SUM = addme(x, y)
+    SUM = x + y;
+end
+```
+It is compiled with the `PythonSparkBuilder`. This will create an additional function in the `wrapper` module.
+
+Now define a UDF for this function inside a notebook:
+```python
+from pyspark.sql.functions import pandas_udf
+from mw.example.pandas.wrapper import addme_series
+@pandas_udf('double', 'double')
+def ml_addme_series(arg1, arg2):
+    return addme_series(arg1, arg2)
+```
+
+This function can now be used as a UDF in a Spark operation, e.g.
+
+```python
+df4 = df3.withColumn("a_plus_b", ml_addme_series(df3.a, df3.b))
+df4.show(10)
+```
 
 
 [//]: #  (Copyright 2022 The MathWorks, Inc.)

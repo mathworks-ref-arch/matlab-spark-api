@@ -3,14 +3,63 @@ function genPartitionHelperFiles(obj, F)
 
     % Copyright 2022 The MathWorks, Inc.
 
-    if ~F.TableInterface
+    if F.TableInterface
+        generateTable(obj, F);
+    else
+        generateSeries(obj, F);
         generateIterator(obj, F);
     end
 
-    if F.TableInterface
-        generateTable(obj, F);
+    
+end
+
+function generateSeries(obj, F)
+    funcName = F.funcName + "_series";
+    fileName = funcName + ".m";
+    fullFileName = fullfile(obj.GenMatlabDir, fileName);
+
+    SW = matlab.sparkutils.StringWriter(fullFileName);
+
+    inArgs = F.generateArgNames('in', 'IN');
+    outArgs = F.generateArgNames('out', 'OUT');
+    SW.pf("function [%s] = %s(%s)\n", ...
+        outArgs.join(", "), ...
+        funcName, ...
+        inArgs.join(", "));
+    SW.indent();
+    SW.pf("%% %s Helper function for %s\n\n", funcName, F.funcName);
+
+    SW.pf("N = numel(%s);\n\n", inArgs(1));
+
+    %     SW.pf('fprintf("numel(%s): %%d\\n", N)\n', inArgs(1));
+    %     SW.pf('fprintf("class(%s): %%s\\n", class(%s))\n', inArgs(1), inArgs(1));
+
+    SW.pf('%% Initialize output arguments\n')
+    for k=1:length(outArgs)
+      SW.pf("%s = cell(1, N);\n", outArgs(k));
     end
     
+    inArgsLoop = join(inArgs + "{k}", ", ");
+    outArgsLoop = join(outArgs + "{k}", ", ");
+    if F.nArgOut > 1
+        outArgsLoop = "[" + outArgsLoop + "]";
+    end
+    SW.pf("\n");    
+    SW.pf("%% Loop through inputs\n");
+    
+    SW.pf("for k=1:N\n");
+    SW.indent();
+
+    SW.pf("%s = %s(%s);\n", outArgsLoop, F.funcName, inArgsLoop);
+    
+    SW.unindent();
+    SW.pf("end\n\n");
+
+    SW.unindent();
+    SW.pf("end\n")
+
+    obj.HelperFiles(end+1) = fullFileName;
+
 end
 
 function generateIterator(obj, F)

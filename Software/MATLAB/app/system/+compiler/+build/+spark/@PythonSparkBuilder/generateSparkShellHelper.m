@@ -6,8 +6,6 @@ function generateSparkShellHelper(obj)
     old = cd(obj.OutputDir);
     goBack = onCleanup(@() cd(old));
     
-    wheelFile = obj.getWheelFile();
-    
     fileName = genFile(obj);
     if isunix
         [r, s] = system(sprintf("chmod +x %s", fileName));

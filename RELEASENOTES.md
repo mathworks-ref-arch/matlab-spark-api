@@ -1,5 +1,9 @@
 #  MATLAB *Spark API* - Release Notes
 
+## 0.1.26 (11th Apr 2022)
+* Support methods `describe` and `summary` on Dataset class
+* Support *Pandas* methods in `PythonSparkBuilder`.
+
 ## 0.1.25 (30th Mar 2022)
 * Enabling additional arguments for Table functions
 * Provide helper functions for Compiler workflows
