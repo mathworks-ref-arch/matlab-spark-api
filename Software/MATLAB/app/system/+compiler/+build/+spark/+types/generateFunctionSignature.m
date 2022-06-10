@@ -45,7 +45,16 @@ function jsonFileName = generateFunctionSignature(funcName, IN, OUT)
         [OUT{1:nOut}] = feval(funcName, IN{:});
     end
    
-    enc = compiler.build.spark.types.getTypeEncoding(IN, OUT);
+    [inArgNames, outArgNames] = compiler.build.spark.internal.getArgNames(which(funcName));
+    nIn = nargin(funcName);
+    nOut = nargout(funcName);
+    if isempty(inArgNames) && nIn > 0
+        inArgNames = "in_" + (1:obj.nArgIn);
+    end
+    if isempty(outArgNames) && nOut > 0
+        outArgNames = "out_" + (1:obj.nArgOut);
+    end
+    enc = compiler.build.spark.types.getTypeEncoding(IN, OUT, inArgNames, outArgNames);
 
     fh = fopen(jsonFileName, "w");
     if fh < 0

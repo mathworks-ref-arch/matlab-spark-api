@@ -17,6 +17,8 @@ function generateWrapper(obj)
     SW.pf("import %s\n", obj.PkgName);
     SW.pf("import numpy as np\n");
     SW.pf("import pandas as pd\n");
+    SW.pf("import os\n");    
+    SW.pf("import queue\n");    
     if obj.Metrics
         SW.pf("import pyspark\n");
     end
@@ -27,28 +29,76 @@ function generateWrapper(obj)
     SW.pf('"""This class implements a Wrapper for running certain\n')
     SW.pf('compiled MATLAB functions more easily in a Spark environment."""\n\n');
     SW.pf("# Static variables\n")
-    SW.pf("# Class instance\n");
-    SW.pf("%s = None\n", wrapperInstance);
-    SW.pf("# MATLAB Runtime\n");
-    SW.pf("RT = None\n\n");
+
+    SW.pf("pool = None\n");
+    SW.pf("poolSize = 4\n\n");
+
 
     SW.pf("def __init__(self):\n");
     SW.indent();
     SW.pf('"""This method initiates the package by instantiating (or reusing)\n')
     SW.pf('the MATLAB Runtime"""\n\n')
     SW.pf("super().__init__()\n");
-    SW.pf("self.__setMATLABRuntime()\n\n");
+    SW.pf("print('### Initializing MATLAB Runtime')\n");
+    SW.pf("self.RT = %s.initialize()\n\n", obj.PkgName);
+    SW.unindent();
+
+
+    SW.pf("@staticmethod\n");
+    SW.pf("def getPool():\n");
+    SW.indent();
+    SW.pf('"""Return a pool object, that will deal with the MATLAB runtimes"""\n');
+    SW.pf('if Wrapper.pool is None:\n');
+    SW.indent();
+    SW.pf("# pool is None, create a fresh one\n");
+    SW.pf('Wrapper.pool = queue.SimpleQueue()\n\n');
+
+    SW.pf('# Try to get cpu_count from os\n');
+    SW.pf('Wrapper.poolSize = os.cpu_count()\n')
+    if obj.Debug
+        SW.pf("print('Determining pool size')\n");
+        SW.pf("print(f'poolSize == {Wrapper.poolSize}')\n");
+    end
+    SW.pf('if Wrapper.poolSize is None:\n')
+    SW.indent();
+    SW.pf('Wrapper.poolSize = 4\n\n')
+    SW.unindent()
+
+    SW.pf("# Make sure to use out-of-process runtime\n")
+    SW.pf("%s.initialize_runtime(['-outproc'])\n\n", obj.PkgName);
+    
+    SW.pf("# populate pool with runtimes\n");
+    SW.pf('for k in range(Wrapper.poolSize):\n');
+    SW.indent();
+    SW.pf('Wrapper.pool.put(Wrapper())\n\n');
+    SW.unindent();
+    SW.unindent();
+
+    SW.pf('return Wrapper.pool\n\n');
     SW.unindent();
 
     SW.pf("@staticmethod\n");
     SW.pf("def getInstance():\n");
     SW.indent();
-    SW.pf('"""This static method returns a singleton handle to this class."""\n\n');
-    SW.pf("if %s is None:\n", wrapperInstanceFullName);
-    SW.indent();
-    SW.pf("%s = %s()\n", wrapperInstanceFullName, obj.WrapperClassName);
+    SW.pf('"""This static method returns a singleton handle to this class.\n');
+    SW.pf('If no pool resources are available, the function is blocking."""\n\n');
+    SW.pf('the_pool = Wrapper.getPool()\n\n');
+    SW.pf('# The next call is possibly blocking\n')
+    SW.pf('wrapper = the_pool.get()\n\n');
+    if obj.Debug
+        SW.pf("print(f'dir(wrapper): {dir(wrapper)}')\n");
+    end
+    SW.pf('return wrapper\n\n');
     SW.unindent();
-    SW.pf("return %s\n\n", wrapperInstanceFullName);
+
+    SW.pf("@staticmethod\n");
+    SW.pf("def releaseInstance(wrapper):\n");
+    SW.indent();
+    SW.pf('"""This static returns a Wrapper instance, and its runtime, to the pool.\n');
+    SW.pf('This is necessary to ensure resource sharing."""\n\n');
+    SW.pf('the_pool = Wrapper.getPool()\n\n');
+    SW.pf('# The next call is possibly blocking\n')
+    SW.pf('the_pool.put(wrapper)\n\n');
     SW.unindent();
 
     SW.pf("# Methods for pickling:\n");
@@ -58,8 +108,7 @@ function generateWrapper(obj)
     SW.pf('It overrides the shipping method, and excludes some non-serializable\n')
     SW.pf('elements from the __dict__ entries."""\n\n');
     SW.pf("state = self.__dict__.copy()\n");
-    SW.pf("del state['RT']\n");
-    SW.pf("del state['instance']\n");
+    SW.pf("del state['pool']\n");
     SW.pf("return state\n\n");
     SW.unindent();
 
@@ -68,24 +117,8 @@ function generateWrapper(obj)
     SW.pf('"""Method to initialize a class after reading in the serialization.\n');
     SW.pf('It handles non-serializable elements specifically."""\n')
     SW.pf("self.__dict__.update(state)\n");
-    SW.pf("self.__setMATLABRuntime()\n\n");
     SW.unindent();
 
-    SW.pf("def __setMATLABRuntime(self):\n");
-    SW.indent();
-    SW.pf('"""Set the MATLAB runtime, initializing it if necessary."""\n\n')
-    SW.pf("if %s.RT is None:\n", obj.WrapperClassName);
-    SW.indent();
-    SW.pf("print('### Initializing MATLAB Runtime')\n");
-    SW.pf("%s.RT = %s.initialize()\n", obj.WrapperClassName, obj.PkgName);
-    SW.unindent();
-    SW.pf("else:\n");
-    SW.indent();
-    SW.pf("print('### MATLAB Runtime alread initialized')\n");
-    SW.unindent();
-    SW.pf("self.RT = %s.RT\n\n", obj.WrapperClassName);
-
-    SW.unindent();
     SW.unindent();
     SW.pf('### End of Wrapper class\n\n');
 

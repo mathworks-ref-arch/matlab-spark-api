@@ -91,14 +91,18 @@ classdef Config < handle
             cfgFile = obj.getUserConfigFile();
             fh = fopen(cfgFile, 'w');
             if fh < 0
-                error('SPARK:ERROR', 'Couldn''t open config file for writing');
+                error('SPARK:ERROR', 'Could not open config file for writing');
             end
             closeAfter = onCleanup(@() fclose(fh));
             fprintf(fh, '%s', str);
         end
         
         function editConfig(obj)
-            edit(obj.getConfigFile());
+            if batchStartupOptionUsed
+                error('SPARK:ERROR', 'Could not open config file for editing, MATLAB stated in batch mode');
+            else
+                edit(obj.getConfigFile());
+            end
         end
         
         

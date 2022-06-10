@@ -4,7 +4,7 @@ function fillEmptyNames(obj)
     % Copyright 2022 The MathWorks, Inc.
 
     try
-        [inArgCandidates, outArgCandidates] = getArgs(obj.name);
+        [inArgCandidates, outArgCandidates] = compiler.build.spark.internal.getArgNames;
     catch ME
         % If this fails, just don't use it.
         inArgCandidates = "in_" + (1:obj.nArgIn);
@@ -24,21 +24,3 @@ function fillEmptyNames(obj)
     end
 end
 
-function [inArgs, outArgs] = getArgs(fileName)
-    % Parse file
-    t = mtree(fileName, '-file');
-    % Get inputs
-    inArgs = string.empty;
-    outArgs = string.empty;
-    ins = t.Ins;
-    while ~ins.isempty
-        inArgs(end+1) = ins.string; %#ok<AGROW>
-        ins = ins.Next;
-    end
-    % Get outputs
-    outs = t.Outs;
-    while ~outs.isempty
-        outArgs(end+1) = outs.string; %#ok<AGROW>
-        outs = outs.Next;
-    end
-end

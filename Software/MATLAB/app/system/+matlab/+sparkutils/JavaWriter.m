@@ -11,6 +11,7 @@ classdef JavaWriter < handle
         Imports string
         Variables string
         Methods string
+        PostClass string = ""
         Encoders struct
         PathPrepend string
         ClassInheritance string
@@ -73,6 +74,13 @@ classdef JavaWriter < handle
            obj.Variables(end+1) = string(sprintf(str, varargin{:}));
         end
         
+        function addPostClass(obj, str)
+            if isa(str, 'matlab.sparkutils.StringWriter')
+                str = str.getString();
+            end
+            obj.PostClass = obj.PostClass + string(str);
+        end
+
         function name = lastPackageLevel(obj)
            pkgParts = split(string(obj.Package), ".");
            name = char(pkgParts(end));
@@ -164,6 +172,11 @@ classdef JavaWriter < handle
             
             SW.unindent();
             SW.pf("\n} /* End of %s */\n\n", obj.ClassName);
+
+            % Add stuff for PostClass
+            SW.pf("\n%s\n", obj.PostClass);
+
+            SW.pf("/* End of file: %s */\n", obj.FileName);
         end
         
     end

@@ -1,4 +1,4 @@
-function enc = getTypeEncoding(IN, OUT)
+function enc = getTypeEncoding(IN, OUT, inArgNames, outArgNames)
     % getTypeEncoding Helper function to get type encoding
     %
     % This function creates a string, that can be used for type encoding in
@@ -7,6 +7,8 @@ function enc = getTypeEncoding(IN, OUT)
     % The function takes two arguments, each a cell array representing
     % typical input and output arguments of the function for which the
     % encoding is created.
+    % It can furthermore take two additional arguments providing names for
+    % the input and output arguments.
     %
     % Example:
     % A function that takes 2 scalar double values, and returns another
@@ -19,9 +21,15 @@ function enc = getTypeEncoding(IN, OUT)
     % Copyright 2022 The MathWorks, Inc.
 
 
+    if nargin < 3
+        inArgNames = "in_" + (1:numel(IN));
+    end
+    if nargin < 4
+        outArgNames = "out_" + (1:numel(OUT));
+    end
     S = struct();
-    S.InTypes = getArray(cellify(IN));
-    S.OutTypes = getArray(cellify(OUT));
+    S.InTypes = getArray(cellify(IN), inArgNames);
+    S.OutTypes = getArray(cellify(OUT), outArgNames);
     
     %     enc = sprintf('@SB-Start@\n%s\n@SB-End@\n', ...
     %         jsonencode(S, PrettyPrint=true) ...
@@ -32,7 +40,7 @@ function enc = getTypeEncoding(IN, OUT)
 
 end
 
-function arr = getArray(C)
+function arr = getArray(C, argNames)
     N = length(C);
     arr = cell(1,N);
     for k=1:N
@@ -47,7 +55,11 @@ function arr = getArray(C)
                     'uint64', 'uint32', 'uint16', 'uint8', ...
                     'logical' ...
                     }
-                arr{k} = classType;
+                arr{k} = {classType, [1,1], argNames{k}};
+            case {'char', 'string'}
+                arr{k} = {"string", [1,1], argNames{k}};
+            otherwise
+                error('SPARK:ERROR', 'Unsupported datatype: %s', classType);
         end
     end
 end

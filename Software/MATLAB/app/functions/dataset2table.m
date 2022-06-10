@@ -141,6 +141,8 @@ function T = getMatlabTableFromDataset2(ds)  % New (optimized) implementation
                     colData = cellfun(@javaItemToMatlabItem,colData,'uniform',0);
                 case 'array'
                     colData = cellfun(@javaArrayToMatlabArray2,colData,'uniform',0);
+                case 'vector'
+                    colData = cellfun(@(x) x.toArray,colData,'uniform',0);
                 case 'struct'
                     colData = cellfun(@javaStructToMatlabStruct2,colData,'uniform',0);
                 case {'binary','boolean'}

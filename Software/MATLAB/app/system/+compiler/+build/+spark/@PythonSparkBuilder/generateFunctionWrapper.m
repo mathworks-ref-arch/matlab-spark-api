@@ -42,20 +42,20 @@ function generateFunctionWrapper(obj, SW, fileObj)
             % The plain function and the corresponding row function have no
             % meaning for a table interface.
         else
-            % SW.pf("@staticmethod\n");
             SW.pf("def %s(%s):\n", ...
                 fileObj.funcName, ...
                 fileObj.generatePythonInputArgs(false));
             SW.indent();
             SW.pf('""" A plain call to the MATLAB function %s """\n', fileObj.funcName);
             SW.pf("instance = %s.getInstance()\n", obj.WrapperClassName);
-            SW.pf("return instance.RT.%s(%s)\n\n", ...
+            SW.pf("retVal = instance.RT.%s(%s)\n\n", ...
                 fileObj.funcName, ...
                 fileObj.generatePythonInputArgs(true));
+            SW.pf("%s.releaseInstance(instance)\n", obj.WrapperClassName);
+            SW.pf("return retVal\n");
             SW.unindent();
 
             % =========== Call function on a row ===========
-            % SW.pf("@staticmethod\n");
             SW.pf("def %s_rows(row):\n", fileObj.funcName);
             SW.indent();
             SW.pf('""" A call to the MATLAB function %s\n', fileObj.funcName);
@@ -70,7 +70,6 @@ function generateFunctionWrapper(obj, SW, fileObj)
 
     function genIteratorRows()
         % =========== Helper functions to get iterator to a list of rows ===========
-        % SW.pf("@staticmethod\n");
         SW.pf("def %s_iterator_rows(iterator):\n", fileObj.funcName);
         SW.indent();
         SW.pf('""" A helper function to convert an iterator to a list for %s"""\n', fileObj.funcName);
@@ -85,7 +84,6 @@ function generateFunctionWrapper(obj, SW, fileObj)
         % =========== mapPartitions (fast) ===========
         if ~fileObj.TableInterface
             % Don't create a simple iterator for table interfaces
-            % SW.pf("@staticmethod\n");
             SW.pf("def %s_iterator(iterator):\n", fileObj.funcName);
             SW.indent();
             SW.pf('""" A call to the MATLAB function %s\n', fileObj.funcName);
@@ -94,6 +92,7 @@ function generateFunctionWrapper(obj, SW, fileObj)
             SW.pf("instance = %s.getInstance()\n", obj.WrapperClassName);
             SW.pf("rows = list(%s_iterator_rows(iterator))\n", fileObj.funcName);
             SW.pf("results = instance.RT.%s_iterator(rows)\n", fileObj.funcName);
+            SW.pf("%s.releaseInstance(instance)\n", obj.WrapperClassName);
             SW.pf("return iter(results)\n\n")
             SW.unindent();
         end
@@ -103,7 +102,7 @@ function generateFunctionWrapper(obj, SW, fileObj)
         % =========== Table function ===========
         if fileObj.TableInterface
             if fileObj.ScopedTables
-                % SW.pf("@staticmethod\n");
+
                 extraArgs = fileObj.generatePythonTableRestArgs;
                 SW.pf("def %s_table(%s):\n", fileObj.funcName, extraArgs);
                 SW.indent();
@@ -120,13 +119,13 @@ function generateFunctionWrapper(obj, SW, fileObj)
                 SW.pf("instance = %s.getInstance()\n", obj.WrapperClassName);
                 SW.pf("rows = list(%s_iterator_rows(iterator))\n", fileObj.funcName);
                 SW.pf("results = instance.RT.%s_table(rows, %s)\n", fileObj.funcName, extraArgs);
-                SW.pf("# results = list(iterator)\n")
+                SW.pf("%s.releaseInstance(instance)\n", obj.WrapperClassName);
                 SW.pf("return iter(results)\n\n")
                 SW.unindent();
                 SW.pf("return %s\n\n", innerName);
                 SW.unindent();
             else
-                % SW.pf("@staticmethod\n");
+
                 SW.pf("def %s_table(iterator):\n", fileObj.funcName);
                 SW.indent();
                 SW.pf('""" A call to the MATLAB function %s\n', fileObj.funcName);
@@ -135,6 +134,7 @@ function generateFunctionWrapper(obj, SW, fileObj)
                 SW.pf("instance = %s.getInstance()\n", obj.WrapperClassName);
                 SW.pf("rows = list(%s_iterator_rows(iterator))\n", fileObj.funcName);
                 SW.pf("results = instance.RT.%s_table(rows)\n", fileObj.funcName);
+                SW.pf("%s.releaseInstance(instance)\n", obj.WrapperClassName);
                 SW.pf("return iter(results)\n\n")
                 SW.unindent();
             end
@@ -144,7 +144,7 @@ function generateFunctionWrapper(obj, SW, fileObj)
     function genPandasTable()
         if fileObj.TableInterface
             if fileObj.ScopedTables
-                % SW.pf("@staticmethod\n");
+
                 extraArgs = fileObj.generatePythonTableRestArgs;
                 SW.pf("def %s_pandas(%s):\n", fileObj.funcName, extraArgs);
                 SW.indent();
@@ -164,7 +164,7 @@ function generateFunctionWrapper(obj, SW, fileObj)
                 SW.unindent();
 
             else
-                % SW.pf("@staticmethod\n");
+
                 SW.pf("def %s_pandas(pdf : pd.DataFrame):\n", fileObj.funcName);
                 SW.indent();
                 SW.pf('""" A function to be used with applyInPandas."""\n');
@@ -179,7 +179,6 @@ function generateFunctionWrapper(obj, SW, fileObj)
 
     function genPandasSeries()
         if fileObj.PandaSeries
-                % SW.pf("@staticmethod\n");
 
                 inTypesStr =  join(...
                     "'" + [fileObj.InTypes.PrimitiveJavaType] + "'", ...
@@ -208,6 +207,7 @@ function generateFunctionWrapper(obj, SW, fileObj)
                 end
                 SW.pf("result = instance.RT.%s_series(%s)\n", ...
                     fileObj.funcName, lInArgs.join(", "));
+                SW.pf("%s.releaseInstance(instance)\n", obj.WrapperClassName);
                 SW.pf("return pd.Series(result)\n\n");
                 SW.unindent();
         end
@@ -219,19 +219,9 @@ function generateFunctionWrapper(obj, SW, fileObj)
             SW.pf("result[0].append(pyspark.TaskContext().stageId())\n");
             SW.pf("result[0].append(pyspark.TaskContext().taskAttemptId())\n");
             SW.pf("result[0].append(pyspark.TaskContext().partitionId())\n");
-            SW.pf("result[0].append(hex(id(Wrapper.RT)))\n");
-            %             SW.pf("pdResults['task_attempt_id'] = [str(type(pyspark.TaskContext().taskAttemptId()))]\n");
-            %             SW.pf("pdResults['partition_id'] = [str(type(pyspark.TaskContext().partitionId()))]\n");
-
-            %             SW.pf("pdResults = pd.DataFrame(result)\n");
-            %             SW.pf("pdResults['stage_id'] = [str(type(pyspark.TaskContext().stageId()))]\n");
-            %             SW.pf("pdResults['task_attempt_id'] = [str(type(pyspark.TaskContext().taskAttemptId()))]\n");
-            %             SW.pf("pdResults['partition_id'] = [str(type(pyspark.TaskContext().partitionId()))]\n");
-            %             SW.pf("pdResults['partition_id'] = ['Currywurst']\n");
-            %             SW.pf("return pdResults\n\n");
-            %         else
+            SW.pf("result[0].append(hex(id(instance.RT)))\n");
         end
-        %         SW.pf("return pd.DataFrame(result, columns=%s)\n\n", pandas_name);
+        SW.pf("%s.releaseInstance(instance)\n", obj.WrapperClassName);
         SW.pf("return pd.DataFrame(result)\n\n");
     end
 

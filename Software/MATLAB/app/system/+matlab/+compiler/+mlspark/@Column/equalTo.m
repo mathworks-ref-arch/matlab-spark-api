@@ -7,7 +7,7 @@ function col = equalTo(obj, other)
     % Example:
     %
     %     % C1 is a column
-    %     % C2 is a numeric value, logical value, or another column
+    %     % C2 is a numeric, logical or string value, or another column
     %
     %     % Compare column with a constant value and another column
     %     newCol = C1.equalTo(0.01);
@@ -26,6 +26,9 @@ function col = equalTo(obj, other)
                 jcol = obj.column.equalTo(other.column);
             elseif (isnumeric(other) || islogical(other))    % C1 == 3
                 jcol = obj.column.equalTo(other);
+            elseif isstring(other) || ...
+                    (ischar(other) && size(other,1)==1)
+                jcol = obj.column.equalTo(string(other));
             end
         elseif (isnumeric(obj) || islogical(obj)) && isa(other, 'matlab.compiler.mlspark.Column') % 3==C1
             % We cannot directly compare #==col, so we do this: col==#

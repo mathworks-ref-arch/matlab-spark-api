@@ -8,11 +8,11 @@ function [r,s] = buildMatlabSparkUtility(sparkVer)
     % It relies on information from matlab.sparkutility.Config, to use the
     % correct information.
     
-    % Copyright 2020 MathWorks Inc.
+    % Copyright 2020-2022 MathWorks Inc.
    
     % If the databricks package is available use it to provide a warning
     if isDatabricksEnvironment
-        if exist(detectProxy, 'file') == 2
+        if exist('detectProxy', 'file') == 2
             [tf, proxyUri] = detectProxy();
             if tf
                 mvnProxyHelp = "https://maven.apache.org/guides/mini/guide-proxies.html";
@@ -39,7 +39,7 @@ function [r,s] = buildMatlabSparkUtility(sparkVer)
     if ~isDatabricksEnvironment
         mvnCmd = C.genMavenBuildCommand("Databricks");
         fprintf("Running:\n\t%s\n", mvnCmd);
-        [r2,s2] = system(mvnCmd, '-echo');
+        [r2,s2] = system(mvnCmd, '-echo'); %#ok<ASGLU> 
     end
     
 end

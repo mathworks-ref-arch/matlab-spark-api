@@ -20,6 +20,8 @@ function genSparkWrappers(obj, JW)
     JW.addImport("org.apache.spark.api.java.function.MapPartitionsFunction");
     JW.addImport("scala.collection.mutable.WrappedArray");
     
+    useMetrics = obj.parent.Metrics;
+    useDebug = obj.parent.Debug;
     numFiles = length(obj.files);
     for k=1:numFiles
         file = obj.files(k);
@@ -35,9 +37,8 @@ function genSparkWrappers(obj, JW)
             JW.addEncoder(file.getEncoderStruct() );
         end
 
-        useMetrics = obj.parent.Metrics;
         
-        rowIteratorToMWCell(JW, file, baseClassName, wrapperName, useMetrics);
+        rowIteratorToMWCell(JW, file, baseClassName, wrapperName, useMetrics, useDebug);
         
         plainFunctionWrapper(JW, file, baseClassName);
         
@@ -62,7 +63,7 @@ function genSparkWrappers(obj, JW)
     
 end
 
-function rowIteratorToMWCell(JW, file, baseClassName, wrapperName, useMetrics)
+function rowIteratorToMWCell(JW, file, baseClassName, wrapperName, useMetrics, useDebug)
     SW = JW.newMethod();
     
     SW.pf("/** Iterate over a set of rows to create a MWCellArray of the contents\n");
@@ -71,22 +72,27 @@ function rowIteratorToMWCell(JW, file, baseClassName, wrapperName, useMetrics)
     SW.pf(" * It is specific for a particular MATLAB function, as it will need knowledge\n");
     SW.pf(" * about MATLAB data types\n");
     SW.pf(" * @param rowIterator An iterator for a Spark Row object\n");
+    SW.pf(" * @param instance An instance of the base class, %s\n", baseClassName);
     SW.pf(" * @return a MATLAB Cell array\n");
     SW.pf(" */\n");
-    SW.pf("public static MWCellArray rowIteratorToMWCell_%s(Iterator<Row> rowIterator) {\n", file.funcName);
+    SW.pf("public static MWCellArray rowIteratorToMWCell_%s(Iterator<Row> rowIterator, %s instance) {\n", ...
+        file.funcName, baseClassName);
     SW.indent();
     SW.pf('MWCellArray mwCell = null;\n');
-    SW.pf('try {\n');
-    SW.indent();
-    SW.pf('%s wrapperInstance = getInstance();\n', wrapperName);
-    SW.pf('%s instance = wrapperInstance.baseClass;\n', baseClassName);
+    if useDebug
+        SW.pf('log("rowIteratorToMWCell_%s:instance: " + instance);\n', file.funcName);
+    end
+    if useMetrics
+        SW.pf('long lastTic;\n');
+    end
+
     SW.pf('/* The rowIterator is an iterator of the rows contained in this partition.\n');
     SW.pf('* In the loop, the entries of each row will be converted to corresponding\n');
     SW.pf('* MW array values, and the entries will be placed in a MW cell array.\n');
     SW.pf('* Each of these cell arrays will be added to a list of type MWArray\n');
     SW.pf('*/\n');
     if useMetrics
-        SW.pf('wrapperInstance.tic("rowIterator");\n');
+        SW.pf('lastTic = tic("rowIterator");\n');
     end
     if file.TableInterface
         caVec = file.InTypes(1).TableCols;
@@ -104,13 +110,13 @@ function rowIteratorToMWCell(JW, file, baseClassName, wrapperName, useMetrics)
     SW.unindent();
     SW.pf('}\n');
     if useMetrics
-        SW.pf('wrapperInstance.toc("rowIterator");\n');
+        SW.pf('toc("rowIterator", lastTic);\n');
     end
     SW.pf('/* Create a cell array with the rows and columns */\n');
     SW.pf('int numRows = sparkRows.size();\n');
     if useMetrics
-        SW.pf('wrapperInstance.log("Number of rows == " + numRows);\n');
-        SW.pf('wrapperInstance.tic("convertToRows");\n');
+        SW.pf('log("Number of rows == " + numRows);\n');
+        SW.pf('lastTic = tic("convertToRows");\n');
     end
     SW.pf('mwCell = new MWCellArray(numRows, numCols);\n');
     SW.pf('int[] idx = new int[2];\n');
@@ -132,20 +138,8 @@ function rowIteratorToMWCell(JW, file, baseClassName, wrapperName, useMetrics)
     SW.unindent();
     SW.pf('}\n');
     if useMetrics
-        SW.pf('wrapperInstance.toc("convertToRows");\n');
+        SW.pf('toc("convertToRows", lastTic);\n');
     end
-    SW.unindent();
-    
-    SW.pf('} catch ( MWException mwex) {\n');
-    SW.indent();
-    SW.pf('System.out.println(mwex.getMessage());\n');
-    SW.pf('mwex.printStackTrace();\n');
-    SW.unindent();
-    SW.pf('} finally {\n');
-    SW.indent();
-    % SW.pf('MWArray.disposeArray(mwSomething);\n');
-    SW.unindent();
-    SW.pf('} // try\n');
     
     SW.pf('return mwCell;\n');
     SW.unindent();
@@ -200,9 +194,10 @@ function plainFunctionWrapper(JW, file, baseClassName)
     end
     
     % Make the function call in try/catch
+    SW.pf("%s instance = null;\n", baseClassName);
     SW.pf("try {\n");
     SW.indent();
-    SW.pf("%s instance = getBaseClass();\n", baseClassName);
+    SW.pf("instance = getInstance();\n");
     SW.pf("/* Instantiate MW variables from function arguments */\n");
     for ka = 1:file.nArgIn
         CA = file.InTypes(ka);
@@ -244,7 +239,7 @@ function plainFunctionWrapper(JW, file, baseClassName)
         SW.pf("MWArray.disposeArray(%s);\n", dispTypes(dt));
     end
     SW.pf("/* TODO: Dispose of ret too, as it really contains MW variables? */\n");
-    
+    SW.pf("releaseInstance(instance);\n")
     SW.unindent();
     SW.pf("}\n");
     if file.nArgOut > 0
@@ -370,12 +365,15 @@ function mapPartitionsWrapper(JW, file, baseClassName, wrapperName, useMetrics)
     SW.indent();
     SW.pf('MWCellArray mwCell = null;\n');
     SW.pf("ArrayList<%s> retList = new ArrayList<%s>();\n", retType, retType);
+    if useMetrics
+        SW.pf('long lastTic;\n');
+    end
     
+    SW.pf("%s instance = null;\n", baseClassName);
     SW.pf("try {\n");
     SW.indent();
-    SW.pf("%s wrapperInstance = getInstance();\n", wrapperName);
-    SW.pf("%s instance = wrapperInstance.baseClass;\n", baseClassName);
-    SW.pf('mwCell = rowIteratorToMWCell_%s(inputIterator);\n', file.funcName);
+    SW.pf("instance = getInstance();\n");
+    SW.pf('mwCell = rowIteratorToMWCell_%s(inputIterator, instance);\n', file.funcName);
 
     SW.pf("int[] dims = mwCell.getDimensions();\n")
     SW.pf("int sz = dims[0];\n");
@@ -386,15 +384,15 @@ function mapPartitionsWrapper(JW, file, baseClassName, wrapperName, useMetrics)
     
     
     if useMetrics
-        SW.pf('wrapperInstance.tic("%s_partition");\n', file.funcName);
+        SW.pf('lastTic = tic("%s_partition");\n', file.funcName);
     end
     SW.pf("ret = instance.%s_partition(1, mwCell);\n\n", file.funcName);
     if useMetrics
-        SW.pf('wrapperInstance.toc("%s_partition");\n', file.funcName);
+        SW.pf('toc("%s_partition", lastTic);\n', file.funcName);
     end
     
     if useMetrics
-        SW.pf('wrapperInstance.tic("output collection");\n');
+        SW.pf('lastTic = tic("output collection");\n');
     end
     
     SW.pf("MWCellArray mwRet = (MWCellArray) (ret[0]);\n");
@@ -420,7 +418,7 @@ function mapPartitionsWrapper(JW, file, baseClassName, wrapperName, useMetrics)
     SW.unindent();
     SW.pf("}\n");
     if useMetrics
-        SW.pf('wrapperInstance.toc("output collection");\n');
+        SW.pf('toc("output collection", lastTic);\n');
     end
     
     SW.unindent();
@@ -432,6 +430,8 @@ function mapPartitionsWrapper(JW, file, baseClassName, wrapperName, useMetrics)
     SW.pf("} finally {\n");
     SW.indent();
     SW.pf("MWArray.disposeArray(mwCell);\n");
+    SW.pf("releaseInstance(instance);\n");
+
     SW.unindent();
     SW.pf("} // try\n");
     
@@ -465,6 +465,9 @@ function mapPartitionsTableWrapper(JW, file, baseClassName, wrapperName, useMetr
     SW.indent();
     SW.pf("ArrayList<%s> retList = new ArrayList<%s>();\n", retType, retType);
     SW.pf('MWCellArray mwCell = null;\n');
+    if useMetrics
+        SW.pf('long lastTic;\n');
+    end
     % Add local variables for the case when we have additional arguments
     % Declare variables
     inMWArgNames = file.generateNameList("marg", file.nArgIn-1);
@@ -478,10 +481,10 @@ function mapPartitionsTableWrapper(JW, file, baseClassName, wrapperName, useMetr
         SW.pf("%s %s = null;\n", CA.getMWArgType, inMWArgNames(ka-1));
     end
 
+    SW.pf("%s instance = null;\n", baseClassName);
     SW.pf("try {\n");
     SW.indent();
-    SW.pf("%s wrapperInstance = getInstance();\n", wrapperName);    
-    SW.pf("%s instance = wrapperInstance.baseClass;\n", baseClassName);
+    SW.pf("instance = getInstance();\n");
 
     SW.pf("/* Instantiate MW additional variables from function arguments */\n");
     for ka = 2:file.nArgIn
@@ -491,25 +494,25 @@ function mapPartitionsTableWrapper(JW, file, baseClassName, wrapperName, useMetr
     end
 
     if useMetrics
-        SW.pf('wrapperInstance.tic("rowIteratorToMWCell_%s");\n', file.funcName);
+        SW.pf('lastTic = tic("rowIteratorToMWCell_%s");\n', file.funcName);
     end
 
-    SW.pf('mwCell = rowIteratorToMWCell_%s(inputIterator);\n', file.funcName);
+    SW.pf('mwCell = rowIteratorToMWCell_%s(inputIterator, instance);\n', file.funcName);
     if useMetrics
-        SW.pf('wrapperInstance.toc("rowIteratorToMWCell_%s");\n', file.funcName);
+        SW.pf('toc("rowIteratorToMWCell_%s", lastTic);\n', file.funcName);
     end
 
     if useMetrics
-        SW.pf('wrapperInstance.tic("instance.%s_table");\n', file.funcName);
+        SW.pf('lastTic = tic("instance.%s_table");\n', file.funcName);
     end
     SW.pf('Object[] objResult = instance.%s_table(1, mwCell%s);\n', ...
         file.funcName, mwArgString);
     if useMetrics
-        SW.pf('wrapperInstance.toc("instance.%s_table");\n\n', file.funcName);
+        SW.pf('toc("instance.%s_table", lastTic);\n\n', file.funcName);
     end
 
     if useMetrics
-        SW.pf('wrapperInstance.tic("MWData->Spark - %s_partition");\n', file.funcName);
+        SW.pf('lastTic = tic("MWData->Spark - %s_partition");\n', file.funcName);
     end
     SW.pf('MWCellArray result = (MWCellArray) objResult[0];\n\n');
     
@@ -545,7 +548,7 @@ function mapPartitionsTableWrapper(JW, file, baseClassName, wrapperName, useMetr
     SW.unindent();
     SW.pf('}\n');
     if useMetrics
-        SW.pf('wrapperInstance.toc("MWData->Spark - %s_partition");\n', file.funcName);
+        SW.pf('toc("MWData->Spark - %s_partition", lastTic);\n', file.funcName);
     end
     
     SW.unindent();
@@ -558,6 +561,8 @@ function mapPartitionsTableWrapper(JW, file, baseClassName, wrapperName, useMetr
     SW.indent();
     SW.pf("MWArray.disposeArray(mwCell);\n");
 %     SW.pf("MWArray.disposeArray(mwRows);\n");
+    SW.pf("releaseInstance(instance);\n")
+
     SW.unindent();
     SW.pf("} // try\n");
 
@@ -703,25 +708,28 @@ function foreachPartitionsWrapperJava(JW, file, baseClassName, wrapperName, useM
     SW.pf("@Override public void call(Iterator<Row> rowIterator) {\n");
     SW.indent();
     SW.pf('MWCellArray mwCell = null;\n');
+    if useMetrics
+        SW.pf('long lastTic;\n');
+    end
 
-%     SW.pf("ArrayList<%s> retList = new ArrayList<%s>();\n", retType, retType);
-    
+    %     SW.pf("ArrayList<%s> retList = new ArrayList<%s>();\n", retType, retType);
+
+    SW.pf("%s instance = null;\n", baseClassName);
     SW.pf("try {\n");
     SW.indent();
-    SW.pf("%s wrapperInstance = getInstance();\n", wrapperName);
-    SW.pf("%s instance = wrapperInstance.baseClass;\n", baseClassName);
-    SW.pf('mwCell = rowIteratorToMWCell_%s(rowIterator);\n', file.funcName);
+    SW.pf("instance = getInstance();\n");
+    SW.pf('mwCell = rowIteratorToMWCell_%s(rowIterator, instance);\n', file.funcName);
 
     SW.pf("/* Call the partition function with these rows.\n");
     SW.pf(" * The partition function is a helper function that was generated\n");
     SW.pf(" * by the SparkBuilder. */\n");
     
     if useMetrics
-        SW.pf('wrapperInstance.tic("%s_partition");\n', file.funcName);
+        SW.pf('lastTic = tic("%s_partition");\n', file.funcName);
     end
     SW.pf("instance.%s_partition(mwCell);\n\n", file.funcName);
     if useMetrics
-        SW.pf('wrapperInstance.toc("%s_partition");\n', file.funcName);
+        SW.pf('toc("%s_partition", lastTic);\n', file.funcName);
     end
     
     SW.unindent();
@@ -733,6 +741,7 @@ function foreachPartitionsWrapperJava(JW, file, baseClassName, wrapperName, useM
     SW.pf("} finally {\n");
     SW.indent();
     SW.pf("MWArray.disposeArray(mwCell);\n");
+    SW.pf("releaseInstance(instance);\n")
     SW.unindent();
     SW.pf("} // try\n");
     

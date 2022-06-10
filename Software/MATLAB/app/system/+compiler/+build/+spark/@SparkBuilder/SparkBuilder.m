@@ -22,6 +22,7 @@ classdef SparkBuilder < handle
     end
     
     properties (Hidden=true)
+        Debug = false
         Metrics = false
         mccOptions = '-vW';
         JavaHome

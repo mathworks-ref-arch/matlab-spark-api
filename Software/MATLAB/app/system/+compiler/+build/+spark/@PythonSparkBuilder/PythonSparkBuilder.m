@@ -28,6 +28,7 @@ classdef PythonSparkBuilder < handle
 
     properties(Hidden)
         Metrics (1,1) logical = false
+        Debug   (1,1) logical = false
     end
 
     properties (SetAccess = protected, Hidden)

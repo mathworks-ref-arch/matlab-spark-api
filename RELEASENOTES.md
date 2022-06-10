@@ -1,5 +1,9 @@
 #  MATLAB *Spark API* - Release Notes
 
+## 0.1.30 (10th June 2022)
+* Support for vectors in `dataset2table`
+* Support string type for SparkBuilder additional arguments
+
 ## 0.1.29 (17th May 2022)
 * Add `isin` method for `Column` object
 
