@@ -1,5 +1,8 @@
 #  MATLAB *Spark API* - Release Notes
 
+## 0.1.29 (17th May 2022)
+* Add `isin` method for `Column` object
+
 ## 0.1.28 (16th May 2022)
 * Add exception cause for missing Jar in Databricks
 
