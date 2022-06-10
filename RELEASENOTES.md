@@ -1,5 +1,8 @@
 #  MATLAB *Spark API* - Release Notes
 
+## 0.1.28 (16th May 2022)
+* Add exception cause for missing Jar in Databricks
+
 ## 0.1.27 (13th May 2022)
 * Migrate from `distutils` to `setuptools` for `PythonSparkBuilder`
 * Add metrics option for (some) Pandas methods

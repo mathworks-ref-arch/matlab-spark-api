@@ -13,9 +13,9 @@ function conf = createJavaSparkConf(varargin)
     %
     % The returned value is an instance of org.apache.spark.SparkConf, i.e.
     % a Java object.
-    
+
     % Copyright 2021 The MathWorks, Inc.
-    
+
     p = inputParser;
     defaultAppName = ['matlab-spark-', datestr(now,30)];
     defaultMaster = 'local';
@@ -29,26 +29,36 @@ function conf = createJavaSparkConf(varargin)
         @(x)isa(x,'containers.Map') && strcmp(x.KeyType,'char') && strcmp(x.ValueType,'char'));
     addParameter(p, 'SparkProperties',defaultSparkProperties, ...
         @(x)isa(x,'containers.Map') && strcmp(x.KeyType,'char') && strcmp(x.ValueType,'char'));
-    
+
     parse(p, varargin{:});
-    
-    conf = org.apache.spark.SparkConf;
+
+    try
+        conf = org.apache.spark.SparkConf;
+    catch ME
+        if (strcmp(ME.identifier,'MATLAB:undefinedVarOrClass'))
+            if isDatabricksEnvironment
+                causeException = MException('DATABRICKS:CONNECT', 'A Databricks Connect jar may be missing from the static Java class path, see Documentation/DBConnect.md');
+                ME = addCause(ME,causeException);
+            end
+        end
+        rethrow(ME);
+    end
     conf.setMaster(p.Results.Master);
     conf.setAppName(p.Results.AppName);
-    
+
     if (~isempty(p.Results.ExecutorEnv))
         listOfPropNames = p.Results.ExecutorEnv.keys;
         for i = 1:length(listOfPropNames)
             conf.setExecutorEnv( listOfPropNames{i}, p.Results.ExecutorEnv(listOfPropNames{1}));
         end
     end
-    
+
     if (~isempty(p.Results.SparkProperties))
         listOfPropNames = p.Results.SparkProperties.keys;
         for i = 1:length(listOfPropNames)
             conf.set( listOfPropNames{i}, p.Results.SparkProperties(listOfPropNames{i}));
         end
     end
-    
+
 end
 
