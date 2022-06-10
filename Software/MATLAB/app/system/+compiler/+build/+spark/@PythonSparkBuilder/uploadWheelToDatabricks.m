@@ -23,6 +23,8 @@ function uploadWheelToDatabricks(obj, uploadFolder, clusterId)
         clusterId = cfg.cluster_id;
     end
     
+    uploadFolder = char(uploadFolder);
+
     [wheelFile, wheelName] = obj.getWheelFile();
     % Upload the file to DBFS
     db = databricks.DBFS();
@@ -32,7 +34,7 @@ function uploadWheelToDatabricks(obj, uploadFolder, clusterId)
     if uploadFolder(end) ~= '/'
         uploadFolder(end+1) = '/';
     end
-    wheelDbfsName = ['dbfs:', uploadFolder, wheelName];
+    wheelDbfsName = ['dbfs:', uploadFolder, char(wheelName)];
 
     fprintf("Installing wheel on cluster %s\n", clusterId);
     PW = databricks.Library;

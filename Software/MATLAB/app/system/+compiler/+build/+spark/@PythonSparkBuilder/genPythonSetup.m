@@ -15,7 +15,7 @@ function genPythonSetup(obj)
 
     yearStr = datestr(now, 'YYYY');
     SW.pf("# Copyright 2015-%s The MathWorks, Inc.\n\n", yearStr);
-    SW.pf("from distutils.core import setup\n\n");
+    SW.pf("from setuptools import setup\n\n");
     SW.pf("if __name__ == '__main__':\n\n");
     SW.indent();
     SW.pf("setup(\n");

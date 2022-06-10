@@ -13,9 +13,13 @@ function generateWrapper(obj)
 
     SW.pf("# Wrapper file for %s package\n\n", obj.PkgName);
 
+    SW.pf("from __future__ import print_function\n");
     SW.pf("import %s\n", obj.PkgName);
     SW.pf("import numpy as np\n");
-    SW.pf("import pandas as pd\n")
+    SW.pf("import pandas as pd\n");
+    if obj.Metrics
+        SW.pf("import pyspark\n");
+    end
     SW.pf("from pyspark.sql.functions import pandas_udf, PandasUDFType\n\n");
 
     SW.pf("class %s:\n", obj.WrapperClassName);

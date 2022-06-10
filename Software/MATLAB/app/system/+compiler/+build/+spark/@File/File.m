@@ -17,6 +17,7 @@ classdef File < handle
         TableInterface (1,1) logical  = false
         ScopedTables   (1,1) logical = false
         PandaSeries    (1,1) logical = false
+        TableAggregate (1,1) logical = false
     end
 
     methods
@@ -97,7 +98,8 @@ classdef File < handle
 
             end
 
-            % This is needed to dedcue if it should be used with MATLAB
+            obj.fillEmptyNames();
+            % This is needed to deduce if it should be used with MATLAB
             % tables
             obj.setTableProperties();
         end
@@ -243,7 +245,11 @@ classdef File < handle
 
         function schema = generatePythonPandasSchema(obj)
             OT = obj.OutTypes;
-            strArr = arrayfun(@(x) sprintf("%s %s", x.Name, x.PrimitiveJavaType), OT.TableCols);
+            if obj.TableAggregate
+                strArr = arrayfun(@(x) sprintf("%s %s", x.Name, x.PrimitiveJavaType), OT);
+            else
+                strArr = arrayfun(@(x) sprintf("%s %s", x.Name, x.PrimitiveJavaType), OT.TableCols);
+            end
             schema = strArr.join(", ");
         end
 

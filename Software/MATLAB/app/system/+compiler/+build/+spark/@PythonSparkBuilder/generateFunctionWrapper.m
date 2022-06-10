@@ -22,6 +22,16 @@ function generateFunctionWrapper(obj, SW, fileObj)
         if fileObj.TableInterface
             % We need the types that are returned as schema
             schema = fileObj.generatePythonPandasSchema();
+            if useMetrics(obj, fileObj)
+                % stage_id = pyspark.TaskContext().stageId()
+                % task_attempt_id = pyspark.TaskContext().taskAttemptId()
+                % partition_id = pyspark.TaskContext().partitionId()
+                schema = schema + ...
+                    ", stage_id int" + ...
+                    ", task_attempt_id int" + ...
+                    ", partition_id int" + ...
+                    ", matlab_runtime string";
+            end
             SW.pf("%s_pandas_schema = '%s'\n", fileObj.funcName, schema);
         end
 
@@ -148,7 +158,7 @@ function generateFunctionWrapper(obj, SW, fileObj)
                 SW.pf("instance = %s.getInstance()\n", obj.WrapperClassName);
                 SW.pf("rows = pdf.to_numpy().tolist()\n");
                 SW.pf("result = instance.RT.%s_table(rows, %s)\n", fileObj.funcName, extraArgs);
-                SW.pf("return pd.DataFrame(result)\n\n");
+                createPandasResultFrame();
                 SW.unindent();
                 SW.pf("return %s\n\n", innerName);
                 SW.unindent();
@@ -161,7 +171,7 @@ function generateFunctionWrapper(obj, SW, fileObj)
                 SW.pf("instance = %s.getInstance()\n", obj.WrapperClassName);
                 SW.pf("rows = pdf.to_numpy().tolist()\n");
                 SW.pf("result = instance.RT.%s_table(rows)\n", fileObj.funcName);
-                SW.pf("return pd.DataFrame(result)\n\n");
+                createPandasResultFrame();
                 SW.unindent();
             end
         end
@@ -203,5 +213,28 @@ function generateFunctionWrapper(obj, SW, fileObj)
         end
     end
 
+    function createPandasResultFrame()
+        if useMetrics(obj, fileObj)
+            SW.pf("# Add metrics to Dataframe\n");
+            SW.pf("result[0].append(pyspark.TaskContext().stageId())\n");
+            SW.pf("result[0].append(pyspark.TaskContext().taskAttemptId())\n");
+            SW.pf("result[0].append(pyspark.TaskContext().partitionId())\n");
+            SW.pf("result[0].append(hex(id(Wrapper.RT)))\n");
+            %             SW.pf("pdResults['task_attempt_id'] = [str(type(pyspark.TaskContext().taskAttemptId()))]\n");
+            %             SW.pf("pdResults['partition_id'] = [str(type(pyspark.TaskContext().partitionId()))]\n");
+
+            %             SW.pf("pdResults = pd.DataFrame(result)\n");
+            %             SW.pf("pdResults['stage_id'] = [str(type(pyspark.TaskContext().stageId()))]\n");
+            %             SW.pf("pdResults['task_attempt_id'] = [str(type(pyspark.TaskContext().taskAttemptId()))]\n");
+            %             SW.pf("pdResults['partition_id'] = [str(type(pyspark.TaskContext().partitionId()))]\n");
+            %             SW.pf("pdResults['partition_id'] = ['Currywurst']\n");
+            %             SW.pf("return pdResults\n\n");
+            %         else
+        end
+        %         SW.pf("return pd.DataFrame(result, columns=%s)\n\n", pandas_name);
+        SW.pf("return pd.DataFrame(result)\n\n");
+    end
+
 end
+
 

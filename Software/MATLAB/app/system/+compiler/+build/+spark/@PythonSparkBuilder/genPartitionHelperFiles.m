@@ -112,13 +112,20 @@ function generateTable(obj, F)
     SW.indent();
     SW.pf("%% %s Helper function for %s\n\n", funcName, F.funcName);
 
-    %     SW.pf("disp(IN) %% Debug stuff \n");
-    SW.pf("%% We need the first entry to deduce the number of columns.\n");
-    SW.pf("N = numel(IN);\n")
-    SW.pf("numCols = numel(IN{1});\n\n")
-    SW.pf("%% Reshape the cell array to create a table\n");
-    SW.pf("reshapedCells = reshape([IN{:}], numCols, N)';\n");
-    SW.pf("IN_T = cell2table(reshapedCells);\n\n");
+
+    % If we only have one column, this will be "optimized" into the
+    % underlying type, so we have to make a distinction here
+    numTableColumns = length(F.InTypes(1).TableCols);
+    if numTableColumns == 1
+        SW.pf("IN_T = cell2table(IN(:));\n\n");
+    else
+        SW.pf("%% We need the first entry to deduce the number of columns.\n");
+        SW.pf("N = numel(IN);\n")
+        SW.pf("numCols = numel(IN{1});\n\n")
+        SW.pf("%% Reshape the cell array to create a table\n");
+        SW.pf("reshapedCells = reshape([IN{:}], numCols, N)';\n");
+        SW.pf("IN_T = cell2table(reshapedCells);\n\n");
+    end
     
     inputNames = F.InTypes(1).names;
     if ~isempty(inputNames)
@@ -127,21 +134,35 @@ function generateTable(obj, F)
         SW.pf('["%s"];\n', join(inputNames, '", "'));
         SW.unindent();
     end
+    SW.pf("\n");
 
-    SW.pf("%% Run the actual algorithm\n");
-    SW.pf("OUT_T = %s(%s);\n\n", F.funcName, F.generatePythonTableHelperArgs("IN_T"));
+    % There are 2 use cases, either table output or scalar output. The
+    % output data handling differs in theses cases.
+    if F.TableAggregate
+        SW.pf("%% Run the actual algorithm\n");
 
-    SW.pf("%% Create a cell array with the same size as the table\n")
-    SW.pf("OUT_C = table2cell(OUT_T);\n\n");
+        SW.pf("OUT_C = cell(1, %d);\n", F.nArgOut);
+        SW.pf("[OUT_C{:}] = %s(%s);\n\n", F.funcName, F.generatePythonTableHelperArgs("IN_T"));
 
-    SW.pf("%% Repackage the cell array in the format expected by Spark\n")
-    SW.pf("OUT = cell(1, N);\n")
-    SW.pf("for k=1:N\n");
-    SW.indent();
-    SW.pf("OUT{k} = OUT_C(k,:);\n");
-    SW.unindent();
-    SW.pf("end\n\n");
+        SW.pf("OUT = {OUT_C};\n")
 
+    else
+        SW.pf("%% Run the actual algorithm\n");
+        SW.pf("OUT_T = %s(%s);\n\n", F.funcName, F.generatePythonTableHelperArgs("IN_T"));
+
+        SW.pf("%% The output table may have a different number of rows\n");
+        SW.pf("N_OUT = height(OUT_T);");
+        SW.pf("%% Create a cell array with the same size as the table\n")
+        SW.pf("OUT_C = table2cell(OUT_T);\n\n");
+
+        SW.pf("%% Repackage the cell array in the format expected by Spark\n")
+        SW.pf("OUT = cell(1, N_OUT);\n")
+        SW.pf("for k=1:N_OUT\n");
+        SW.indent();
+        SW.pf("OUT{k} = OUT_C(k,:);\n");
+        SW.unindent();
+        SW.pf("end\n\n");
+    end
     SW.unindent();
     SW.pf("end\n")
 

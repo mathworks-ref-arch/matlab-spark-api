@@ -1,5 +1,13 @@
 #  MATLAB *Spark API* - Release Notes
 
+## 0.1.27 (13th May 2022)
+* Migrate from `distutils` to `setuptools` for `PythonSparkBuilder`
+* Add metrics option for (some) Pandas methods
+* Enable persistent spark sessions for Databricks
+* Add concat method from `sql.functions`
+* Add schema method on `DataFrameReader`
+* Add `TableAggregate` type for `PythonSparkBuilder`
+
 ## 0.1.26 (11th Apr 2022)
 * Support methods `describe` and `summary` on Dataset class
 * Support *Pandas* methods in `PythonSparkBuilder`.

@@ -53,9 +53,13 @@ classdef SparkSessionHandler < handle
             SH = matlab.sparkutils.SparkSessionHandler.getSessionHandler();
             idx = SH.findSession(sparkMaster);
             if isempty(idx)
-                spark = getDefaultSparkSession(...
-                    ['matlab-spark-', datestr(now,30)], ...
-                    sparkMaster);
+                if isDatabricksEnvironment
+                    spark = getDefaultDatabricksSession();
+                else
+                    spark = getDefaultSparkSession(...
+                        ['matlab-spark-', datestr(now,30)], ...
+                        sparkMaster);
+                end
                 idx = SH.addSession(sparkMaster, spark);
             end
             spark = SH.Sessions{idx};

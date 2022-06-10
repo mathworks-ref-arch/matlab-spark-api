@@ -26,6 +26,10 @@ classdef PythonSparkBuilder < handle
         HelperFiles string
     end
 
+    properties(Hidden)
+        Metrics (1,1) logical = false
+    end
+
     properties (SetAccess = protected, Hidden)
         PkgNameParts
         WrapperClassName
@@ -123,6 +127,7 @@ classdef PythonSparkBuilder < handle
         % Methods defined outside of this function
         generateFunctionWrapper(obj, SW, fileObj)
         genPartitionHelperFiles(obj, F)
+        use = useMetrics(obj, fileObj)
         
     end
     

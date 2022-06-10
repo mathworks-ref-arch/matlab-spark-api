@@ -26,7 +26,8 @@ function enc = getTypeEncoding(IN, OUT)
     %     enc = sprintf('@SB-Start@\n%s\n@SB-End@\n', ...
     %         jsonencode(S, PrettyPrint=true) ...
     %         );
-    enc = jsonencode(S, PrettyPrint=true);
+    
+    enc = pretty(jsonencode(S));
 
 
 end
