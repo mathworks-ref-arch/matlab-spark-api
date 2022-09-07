@@ -1,5 +1,8 @@
 #  MATLAB *Spark API* - Release Notes
 
+## 0.2.1 (7th Sept 2022)
+* Update `SparkApiRef.md`
+
 ## 0.2.0 (7th Sept 2022)
 * Improved PythonSparkBuilder
 * Improved error handling in deployed mode
