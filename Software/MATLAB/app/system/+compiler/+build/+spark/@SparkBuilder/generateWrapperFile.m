@@ -22,6 +22,8 @@ function generateWrapperFile(obj)
             JW.addImport("com.mathworks.toolbox.javabuilder.MWNumericArray");
             JW.addImport("com.mathworks.toolbox.javabuilder.MWLogicalArray");
             JW.addImport("com.mathworks.toolbox.javabuilder.MWCellArray");
+            % JW.addImport("com.mathworks.extern.java.MWCellArray");
+
             JW.addImport("com.mathworks.toolbox.javabuilder.MWCharArray");
             JW.addImport("com.mathworks.toolbox.javabuilder.MWApplication");
             JW.addImport("com.mathworks.toolbox.javabuilder.MWMCROption");
@@ -41,6 +43,7 @@ function generateWrapperFile(obj)
             JW.addImport("java.util.ArrayList");
             JW.addImport("org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema");
             JW.addImport("org.apache.spark.sql.Row");
+            JW.addImport("org.apache.spark.sql.Dataset");
             JW.addImport("org.apache.spark.sql.SparkSession");
 
             JW.addImport("com.mathworks.scala.SparkUtilityHelper");
@@ -53,33 +56,7 @@ function generateWrapperFile(obj)
             generateMetricUtils(JW);
             % end
 
-            %             M = JW.newMethod();
-            %             M.pf("/** %s\n", wrapperName);
-            %             M.pf(" * A private constructor of this class.\n" + ...
-            %                 " * Will create a reference to the base class,\n" + ...
-            %                 " * containing the compiled methods\n");
-            %             M.pf(" */\n");
-            %             M.pf("private %s() throws MWException {\n", wrapperName);
-            %             M.pf("    baseClass = new %s(); \n", baseClassName);
-            %             M.pf("}\n");
-            %             JW.addMethod(M);
-
-            %             M = JW.newMethod();
-            %             M.pf("public static %s getInstance() throws MWException {\n", wrapperName);
-            %             M.pf("    if (instance == null) {\n");
-            %             M.pf("        instance = new %s();\n", wrapperName);
-            %             M.pf("    }\n");
-            %             M.pf("    return instance;\n");
-            %             M.pf("}\n");
-            %             JW.addMethod(M);
-
             generateWrapperConstructor(JW, JC);
-
-            %             M = JW.newMethod();
-            %             M.pf("public static %s getBaseClass() throws MWException {\n", baseClassName);
-            %             M.pf("    return getInstance().baseClass;\n");
-            %             M.pf("}\n");
-            %             JW.addMethod(M);
 
             genSparkWrappers(JC, JW);
 
@@ -102,53 +79,6 @@ function generateWrapperConstructor(JW, JC)
     JW.addImport("com.mathworks.toolbox.javabuilder.MWCtfExtractLocation");
     JW.addImport("com.mathworks.toolbox.javabuilder.MWCtfClassLoaderSource");
 
-%     SW = JW.newMethod();
-%     SW.pf("private static final ThreadLocal<%s> tlWrapper = new ThreadLocal<%s>() {\n", ...
-%         wrapperName, wrapperName);
-%     SW.indent();
-%     SW.pf("@Override\n");
-%     SW.pf("protected %s initialValue() {\n", wrapperName);
-%     SW.indent();
-%     SW.pf("try {\n");
-%     SW.indent();
-%     SW.pf("int id = nextId.getAndIncrement();\n");
-%     SW.pf("System.out.println(""initialValue(): Have threadID == "" + id);\n");
-%     SW.pf("String home = System.getProperty(""user.home"");\n");
-%     SW.pf("String ctfRoot = home + ""/ctfroot_"" + id;\n");
-%     SW.pf("%s theWrapper = new %s(id, ctfRoot);\n", wrapperName, wrapperName);
-%     SW.pf("return theWrapper;\n");
-%     SW.unindent();
-%     SW.pf("} catch (MWException mwex) {\n");
-%     SW.indent();
-%     SW.pf("System.out.println(mwex.getMessage());\n");
-%     SW.pf("mwex.printStackTrace();\n");
-%     SW.unindent();
-%     SW.pf("}\n");
-%     SW.pf("return null;\n");
-%     SW.unindent();
-%     SW.pf("}\n");
-%     SW.unindent();
-%     SW.pf("};\n");
-%     JW.addMethod(SW);
-
-%     SW = JW.newMethod();
-%     SW.pf("private %s(int id, String ctfRoot ) throws MWException {\n", wrapperName);
-%     SW.indent();
-%     SW.pf("wrapperId = id;\n");
-%     SW.pf("threadStr = "" Thread["" + wrapperId + ""] %s "";\n", JW.ClassName);
-% 
-%     SW.pf("sdf = new SimpleDateFormat(""yyyy-MM-dd HH:mm:ss,SSS"");\n");
-%     SW.pf("System.out.println(""Creating new MATLABWrapper - "" + wrapperId);\n");
-%     SW.pf("MWCtfExtractLocation mwctfExt = new MWCtfExtractLocation(ctfRoot);\n");
-%     SW.pf("MWComponentOptions mwCompOpts = new MWComponentOptions(mwctfExt, new MWCtfClassLoaderSource(%s.class));\n", JW.getMCRFactoryName);
-%     SW.pf("baseClass = new %s(mwCompOpts);\n", baseClassName);
-%     SW.pf("int baseHash = baseClass.hashCode();\n");
-%     SW.pf("String hashHex = Integer.toHexString(baseHash);\n");
-%     SW.pf("System.out.println(""Created baseclass in wrapper "" + wrapperId + "". baseClass hash == "" + hashHex);\n");
-%     SW.unindent();
-%     SW.pf("}\n");
-%     JW.addMethod(SW);
-
     SW = JW.newMethod();
     SW.pf("public static synchronized RuntimeQueue getRuntimeQueue(){\n");
     SW.indent();
@@ -164,13 +94,13 @@ function generateWrapperConstructor(JW, JC)
 
 
     SW = JW.newMethod();
-    SW.pf("public static %s getInstance() throws MWException {\n", baseClassName);
+    SW.pf("public static synchronized %s getInstance() throws MWException {\n", baseClassName);
     SW.indent();
     SW.pf("return getRuntimeQueue().getInstance();\n");
     SW.unindent();
     SW.pf("}\n");
 
-    SW.pf("public static void releaseInstance(%s inst) {\n", baseClassName);
+    SW.pf("public static synchronized void releaseInstance(%s inst) {\n", baseClassName);
     SW.indent();
     SW.pf("getRuntimeQueue().releaseInstance(inst);\n");
     SW.unindent();
@@ -178,19 +108,19 @@ function generateWrapperConstructor(JW, JC)
 
     JW.addMethod(SW);
 
-%     SW = JW.newMethod();
-%     SW.pf("public static %s getBaseClass() throws MWException {\n", baseClassName);
-%     SW.indent();
-%     %SW.pf("// System.out.println(""getBaseClass(): Have threadID == "" + getThreadID());\n");
-%     SW.pf("%s bc = getInstance().baseClass;\n", baseClassName);
-%     SW.pf("int baseHash = bc.hashCode();\n");
-%     SW.pf("String hashHex = Integer.toHexString(baseHash);\n");
-%     SW.pf("System.out.println(""#### Retrieving baseClass "" + hashHex);\n");
-%     SW.pf("return bc;\n");
-%     SW.unindent();
-%     SW.pf("}\n");
-% 
-%     JW.addMethod(SW);
+    %     SW = JW.newMethod();
+    %     SW.pf("public static %s getBaseClass() throws MWException {\n", baseClassName);
+    %     SW.indent();
+    %     %SW.pf("// System.out.println(""getBaseClass(): Have threadID == "" + getThreadID());\n");
+    %     SW.pf("%s bc = getInstance().baseClass;\n", baseClassName);
+    %     SW.pf("int baseHash = bc.hashCode();\n");
+    %     SW.pf("String hashHex = Integer.toHexString(baseHash);\n");
+    %     SW.pf("System.out.println(""#### Retrieving baseClass "" + hashHex);\n");
+    %     SW.pf("return bc;\n");
+    %     SW.unindent();
+    %     SW.pf("}\n");
+    %
+    %     JW.addMethod(SW);
 
 end
 
@@ -269,10 +199,13 @@ function addRuntimePool(JW, wrapperName, baseClassName, debugOn, metricsOn)
     JW.addVariable('private static transient RuntimeQueue queue = null');
     JW.addImport('java.util.concurrent.ArrayBlockingQueue');
     % JW.addImport("java.util.LinkedList");
+
     SW = JW.newMethod();
+    %% RuntimeQueue constructor
     SW.pf('class RuntimeQueue {\n');
     SW.indent();
     SW.pf('int poolSize = 0;\n');
+    SW.pf('int numCreated = 0;\n');
     SW.pf('ArrayBlockingQueue<%s> pool = null;\n', baseClassName);
     SW.pf('public RuntimeQueue() {\n');
     SW.indent();
@@ -292,12 +225,19 @@ function addRuntimePool(JW, wrapperName, baseClassName, debugOn, metricsOn)
         SW.pf("long lastTic;\n");
     end
     SW.pf('pool = new ArrayBlockingQueue<%s>(poolSize);\n', baseClassName);
-    SW.pf('for (int id = 0; id < poolSize; id++) {\n');
+    SW.unindent();
+    SW.pf('}\n');
+
+    %% createInstance
+    SW.pf('private void createInstance() {\n');
     SW.indent();
+
     SW.pf('try {\n');
     SW.indent();
+
     if metricsOn
-    SW.pf('lastTic = %s.tic("Initializing MATLAB Runtime # " + id);\n', wrapperName);
+        SW.pf("long lastTic;\n");
+        SW.pf('lastTic = %s.tic("Initializing MATLAB Runtime # " + numCreated);\n', wrapperName);
     end
     SW.pf('String uuid = java.util.UUID.randomUUID().toString();\n');
     SW.pf('String ctfRoot = "/tmp/ctfroot_" + uuid;\n');
@@ -305,16 +245,14 @@ function addRuntimePool(JW, wrapperName, baseClassName, debugOn, metricsOn)
     SW.pf("MWComponentOptions mwCompOpts = new MWComponentOptions(mwctfExt, new MWCtfClassLoaderSource(%s.class));\n", JW.getMCRFactoryName);
     SW.pf("%s elem = new %s(mwCompOpts);\n", baseClassName, baseClassName);
     if metricsOn
-        SW.pf('%s.toc("Initializing MATLAB Runtime # " + id, lastTic);\n', wrapperName)
+        SW.pf('%s.toc("Initializing MATLAB Runtime # " + numCreated, lastTic);\n', wrapperName)
     end
     %     SW.pf('%s elem = new %s();\n', baseClassName, baseClassName);
     SW.pf('pool.put(elem);\n');
-
-    if debugOn
-        SW.pf('showStatus();\n');
-    end
-    
+    SW.pf('numCreated++;\n');
     SW.unindent();
+
+    % Try/catch handling
     SW.pf('} catch (MWException mwex) {\n');
     SW.indent();
     SW.pf("// Consider what to do here.\n");
@@ -327,15 +265,18 @@ function addRuntimePool(JW, wrapperName, baseClassName, debugOn, metricsOn)
     SW.unindent();
     SW.pf('}\n')
 
-%     SW.pf('Test2Wrapper.log("Instantiated " + pool.size() + " runtimes.");\n');
     SW.unindent();
+    SW.pf('} // createInstance \n\n');
 
-    SW.pf('}\n');
-    SW.unindent();
-    SW.pf('}\n');
+    %% getInstance
     SW.pf('public %s getInstance() {\n', baseClassName);
     SW.indent();
     SW.pf("%s inst = null;\n", baseClassName)
+    SW.pf("if ( (pool.size() == 0) && (numCreated < poolSize) ) {\n");
+    SW.indent();
+    SW.pf('createInstance();\n');
+    SW.unindent();
+    SW.pf('}\n');
     SW.pf('try {\n');
     SW.indent();
     SW.pf("inst = pool.take();\n")
@@ -353,7 +294,7 @@ function addRuntimePool(JW, wrapperName, baseClassName, debugOn, metricsOn)
     SW.pf('return inst;\n');
     SW.unindent();
     SW.pf('} /* getInstance */\n\n');
-    
+
     SW.pf('public void releaseInstance(%s inst) {\n', baseClassName);
     SW.indent();
     SW.pf("if (inst != null) {\n")
@@ -368,7 +309,7 @@ function addRuntimePool(JW, wrapperName, baseClassName, debugOn, metricsOn)
     SW.pf('System.err.println("Problem with Runtime Queue: " + iex.toString());\n');
     SW.unindent();
     SW.pf('}\n')
-    
+
     SW.unindent();
     SW.pf('}\n')
     if debugOn
@@ -386,7 +327,7 @@ function addRuntimePool(JW, wrapperName, baseClassName, debugOn, metricsOn)
     SW.pf('%s.log("ctfserver on this node: " + getRuntimesCountOnNode());\n', wrapperName);
     SW.unindent();
     SW.pf('} /* showStatus */\n\n');
-   
+
     SW.pf('public long getRuntimesCountOnNode() {\n');
     SW.indent();
     SW.pf('long count = -1L;\n');

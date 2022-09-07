@@ -12,6 +12,7 @@ classdef File < handle
         ExcludeFromWrapper = false
         InTypes compiler.build.spark.types.ArgType
         OutTypes compiler.build.spark.types.ArgType
+        API (1,1) struct
     end
     properties (SetAccess = private)
         TableInterface (1,1) logical  = false
@@ -106,11 +107,16 @@ classdef File < handle
 
         function retType = getReturnType(obj)
             if obj.TableInterface
-                nOut = length(obj.OutTypes(1).TableCols);
-                if nOut == 1
-                    retType = getReturnType(obj.OutTypes(1).TableCols);
+                if isa(obj.OutTypes(1), 'compiler.build.spark.types.Table')
+                    ota = obj.OutTypes(1).TableCols;
                 else
-                    types = getReturnTypes(obj.OutTypes.TableCols);
+                    ota = obj.OutTypes;
+                end
+                nOut = length(ota);
+                if nOut == 1
+                    retType = getReturnType(ota);
+                else
+                    types = getReturnTypes(ota);
                     retType = sprintf("scala.Tuple%d<%s>", nOut, ...
                         types.join(", "));
                 end
@@ -142,10 +148,15 @@ classdef File < handle
         function enc = getEncoderCreator(obj)
             %  getEncoderCreator Encoder for output of map
             if obj.TableInterface
-                encEntries = obj.OutTypes.TableCols.getEncoderCreator;
+                if isa(obj.OutTypes(1), 'compiler.build.spark.types.Table')
+                    ota = obj.OutTypes(1).TableCols;
+                else
+                    ota = obj.OutTypes;
+                end
             else
-                encEntries = obj.OutTypes.getEncoderCreator;
+                ota = obj.OutTypes;
             end
+                encEntries = ota.getEncoderCreator;
 
             if length(encEntries) == 1
                 enc = encEntries;
@@ -207,9 +218,17 @@ classdef File < handle
             end
         end
 
+
         function names = generatePythonRowInputArgs(obj, varName)
-            formatStr = sprintf("%s[%%d]", varName);
-            names = arrayfun(@(x) sprintf(formatStr, x-1), (1:obj.nArgIn));
+            % formatStr = sprintf("%s[%%d]", varName);
+            names = string.empty();
+            for k=1:obj.nArgIn
+                IT = obj.InTypes(k);
+                names(k) = sprintf('%s[%d]', varName, k-1);
+                if IT.pythonInputArgumentNeedsCasting()
+                    names(k) = sprintf("matlab.%s(%s)", IT.MATLABType, names(k));
+                end
+            end
             names = join(names, ", ");
         end
 
@@ -240,13 +259,30 @@ classdef File < handle
             end
         end
 
+        function str = convertPythonArrayOutput(~, varName)
+            % OO = obj.OutTypes(outputIdx);
+            str = sprintf("%s.tomemoryview().tolist()[0]", varName);
+        end
+
         function schema = generatePythonPandasSchema(obj)
             OT = obj.OutTypes;
             if obj.TableAggregate
-                strArr = arrayfun(@(x) sprintf("%s %s", x.Name, x.PrimitiveJavaType), OT);
+                %                 strArr = arrayfun(@(x) sprintf("%s %s", x.Name, x.PrimitiveJavaType), OT);
+                otArray = OT;
             else
-                strArr = arrayfun(@(x) sprintf("%s %s", x.Name, x.PrimitiveJavaType), OT.TableCols);
+                %                 strArr = arrayfun(@(x) sprintf("%s %s", x.Name, x.PrimitiveJavaType), OT.TableCols);
+                otArray = OT.TableCols;
             end
+            strArr = string.empty;
+            for k=1:length(otArray)
+                ote = otArray(k);
+                if ote.isScalarData
+                    strArr(k) = sprintf("%s %s", ote.Name, ote.PrimitiveJavaType);
+                else
+                    strArr(k) = sprintf("%s array<%s>", ote.Name, ote.PrimitiveJavaType);
+                end
+            end
+%             strArr = arrayfun(@(x) sprintf("%s %s", x.Name, x.PrimitiveJavaType), otArray);
             schema = strArr.join(", ");
         end
 
@@ -350,6 +386,22 @@ classdef File < handle
             end
             names = [obj.InTypes.Name];
         end
+
+        function names = getOutputNameArray(obj)
+            names = string.empty;
+            if isempty(obj.OutTypes)
+                return;
+            end
+            if isa(obj.OutTypes(1), 'compiler.build.spark.types.Table')
+                names = [obj.OutTypes(1).TableCols.Name];
+                return;
+            end
+            if isempty(obj.OutTypes(1).Name)
+                return;
+            end
+            names = [obj.OutTypes.Name];
+        end
+
     end
 
     methods(Access=private)

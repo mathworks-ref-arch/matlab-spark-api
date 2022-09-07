@@ -80,11 +80,13 @@ df = spark.read.format("parquet").load("/some/data")
 
 ### Run a map function
 To run a map function on every row of this dataset, it can be done as follows.
-Please note that `_rows` is added to the name of the function.
+Please note that `_map` is added to the name of the function.
+There is also a helper variable, with the suffix `_output_names`, that can
+give the same names to the columns, as the output names in MATLAB.
 ```python
 # Assume the data is in the columns A, B and C
-from demo.anomaly.wrapper import detectAnomaly_rows
-df2 = df.select("A", "B", "C").rdd.map(detectAnomaly_rows).toDF(["X", "Y"])
+from demo.anomaly.wrapper import detectAnomaly_map, detectAnomaly_output_names
+df2 = df.select("A", "B", "C").rdd.map(detectAnomaly_map).toDF(detectAnomaly_output_names)
 ```
 This will return a new dataframe with the columns X and Y, with the results of the
 calculations.
@@ -93,11 +95,11 @@ calculations.
 The previous example will call the MATLAB Runtime once for every row. If instead one uses the
 `mapPartition` method, it uses a data partition, and can run it all in one batch
 in the compiled MATLAB function.
-Please note in this case the added `_iterator` in the name of the function.
+Please note in this case the added `_mapPartitions` in the name of the function.
 ```python
 # Assume the data is in the columns A, B and C
-from demo.anomaly.wrapper import detectAnomaly_iterator
-df2 = df.select("A", "B", "C").rdd.mapPartitions(detectAnomaly_iterator).toDF(["X", "Y"])
+from demo.anomaly.wrapper import detectAnomaly_mapPartitions
+df2 = df.select("A", "B", "C").rdd.mapPartitions(detectAnomaly_mapPartitions).toDF(detectAnomaly_output_names)
 ```
 
 In this case, the MATLAB Runtime is called fewer times, which can speed up calculations.
@@ -117,9 +119,9 @@ To achieve this a few steps are required. Assuming there is a function `mynormal
 which takes a table of data and normalizes the different columns, provide some additional
 information to this function.
 
-> The inline comments below is one way of handling this. It is also possible to create this
-> information in a separate JSON file, kept alongside the function. This is described in
-> further detail in [Function Signatures](FunctionSignatures.md).
+> The inline comments, available in a previous release, **are no longer supported**.
+> The information should be specified in a separate JSON file, kept alongside the function.
+> This is described in further detail in [Function Signatures](FunctionSignatures.md).
 
 ```matlab
 function outTable = mynormalize(inTable)
@@ -256,6 +258,11 @@ df4 = df3.withColumn("a_plus_b", ml_addme_series(df3.a, df3.b))
 df4.show(10)
 ```
 
+> **Note**: Each environment (Apache Spark, Python and MATLAB) have a certain set of supported data types.
+> Often, there's a direct mapping between some types, and for others there's no exact mapping.
+> For example, Spark supports (among other) `int16`, `int32` and `int64`, and so does MATLAB. Python however,
+> supports one integer type, of potentially unlimited bits. This can lead to cases where the difference in 
+> cause numeric differences in output.
 
 [//]: #  (Copyright 2022 The MathWorks, Inc.)
 

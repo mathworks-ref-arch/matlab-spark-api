@@ -173,6 +173,43 @@ classdef ArgType < handle & matlab.mixin.Heterogeneous
             
         end
         
+        function str = getBoxedJavaValue(obj, srcData, castArgument)
+            % instantiateMWValue - Instantiate MW type Java object
+            % Arguments:
+            %  src - a text string describing the variable to use
+            %  castArgument [optional] - a boolean stating if we should use
+            %  explicit casting (in case it's just an Object. Default value
+            %  is false.
+            
+            if nargin < 3
+                castArgument = false;
+            end
+            if castArgument
+                castStr = sprintf("(%s)", obj.getJavaType);
+            else
+                castStr = "";
+            end
+            switch obj.JavaType
+%                 case {"Boolean", "String"}
+                case {"Boolean"}
+%                     str = sprintf("new %s(%s%s)", ...
+%                         obj.MWType, castStr, srcData);
+                    str = sprintf("new java.lang.Boolean(%s%s)", ...
+                        castStr, srcData);
+                case {"String"}
+                    str = sprintf("%s%s", ...
+                        castStr, srcData);
+                case {"Integer", "Double", "Float", "Long", "Short"}
+                    if obj.isScalarData
+                        str = sprintf("(%s%s)", castStr, srcData);
+                    else
+                        str = sprintf("SparkUtilityHelper.WrappedArrayRefToArray(%s).toArray()", srcData);
+                    end
+                otherwise
+                    error("Spark:Error", "Unsupported MATLAB type, %s\n", obj.MATLABType);
+            end
+        end
+
         function str = instantiateMWValue(obj, srcData, castArgument)
             % instantiateMWValue - Instantiate MW type Java object
             % Arguments:
@@ -229,6 +266,18 @@ classdef ArgType < handle & matlab.mixin.Heterogeneous
             end
         end
         
+        function ret = pythonInputArgumentNeedsCasting(obj)
+            ret = false;
+            if (~obj.isScalarData())
+                % Always cast arrays
+                ret = true;
+                return;
+            end
+            if (obj.MATLABType == "int32" || obj.MATLABType == "int16")
+                ret = true;
+            end
+        end
+
         function T = getJavaType(obj)
             if ~isscalar(obj)
                 T = string.empty();

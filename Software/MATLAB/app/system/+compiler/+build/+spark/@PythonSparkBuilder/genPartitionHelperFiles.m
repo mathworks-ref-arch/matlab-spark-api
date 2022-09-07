@@ -120,7 +120,10 @@ function generateTable(obj, F)
     SW.pf("IN_T = cell2table(reshapedCells);\n\n");
     
     inputNames = F.InTypes(1).names;
-    if ~isempty(inputNames)
+    if isempty(inputNames)
+        error('SPARK:SparkBuilder', ...
+            'Table columns must have explicit names');
+    else
         SW.pf("IN_T.Properties.VariableNames = ...\n");
         SW.indent();
         SW.pf('["%s"];\n', join(inputNames, '", "'));
@@ -128,6 +131,23 @@ function generateTable(obj, F)
     end
     SW.pf("\n");
 
+    % The conversion to rows will convert an typed array (e.g. double
+    % array) to a cell array. This must be reverted here for array handling
+    % to work.
+    SW.pf("%% If needed, convert cell arrays to typed arrays\n");
+    tArgs = F.InTypes(1).TableCols;
+    for k=1:length(tArgs)
+        tArg = tArgs(k);
+        if ~tArg.isScalarData
+            % This is an array, so we must convert it from cell to real
+            % array
+            SW.pf("IN_T.%s = cell2mat(IN_T.%s);\n", tArg.Name, tArg.Name);
+        end
+    end
+    SW.pf("\n");
+
+    % DEBUG, show IN_T
+    % SW.pf('IN_T\n\n');
     % There are 2 use cases, either table output or scalar output. The
     % output data handling differs in theses cases.
     if F.TableAggregate

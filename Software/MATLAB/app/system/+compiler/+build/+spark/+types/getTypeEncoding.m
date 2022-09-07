@@ -55,20 +55,27 @@ function arr = getArray(C, argNames)
                     'uint64', 'uint32', 'uint16', 'uint8', ...
                     'logical' ...
                     }
-                arr{k} = {classType, [1,1], argNames{k}};
+                arr{k} = {classType, getInputSize(E), argNames{k}};
             case {'char', 'string'}
-                arr{k} = {"string", [1,1], argNames{k}};
+                arr{k} = {"string", getInputSize(E), argNames{k}};
             otherwise
                 error('SPARK:ERROR', 'Unsupported datatype: %s', classType);
         end
     end
 end
 
+function arr = getInputSize(value)
+    arr = size(value);
+end
+
+
 function arr = getTableTypeArray(T)
     types = table2cell(varfun(@class, T));
     names = T.Properties.VariableNames;
+    sizes = table2cell(varfun(@size, T(1,:)));
 
-    arr = cellfun(@(t,n) {t, [1,1], n}, types, names, 'UniformOutput', false);
+    arr = cellfun(@(t,n,s) {t, s, n}, types, names, sizes, ...
+        'UniformOutput', false);
 end
 
 function C = cellify(C)

@@ -8,11 +8,10 @@ function [outStr] = pretty(inStr)
         outStr = builtin(@pretty,inStr);
     else
         % Consume the incoming JSON
-        jParser = javaObject('com.google.gson.JsonParser');
-        jElement = jParser.parse(inStr);
+        jElement = com.google.gson.JsonParser().parse(inStr);
 
         % Create a pretty printer
-        prettyPrinter = javaObject('com.google.gson.GsonBuilder').setPrettyPrinting().create();
+        prettyPrinter = com.google.gson.GsonBuilder().setPrettyPrinting().create();
         outStr = char(prettyPrinter.toJson(jElement));
     end
 

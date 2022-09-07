@@ -41,13 +41,16 @@ will have this JSON content (or similar, depending on types and sizes):
 
 ## Providing the information to the compiler
 
-For the SparkBuilder to use this information, there are 2 options:
+For the SparkBuilder to use this information, there is 1 option (there used to be 3):
 1. Create a JSON file with this content, and the name `simplecalc_signature.json`
    (for the MATLAB function `simplecalc.m`), and place it in the same folder as the
    file that should be compiled.
-2. Add this information in the help text of the function, between the tokens
+2. **Deprecated** If code exists using this method, please change the code to use
+a signature file (option 1) Add this information in the help text of the function, between the tokens
    `@SB-Start@` and `@SB-End@`.
-3. Manually setting types, by providing the correct arguments to the `File` constructor.
+3. **Avoid** Manually setting types, by providing the correct arguments to the `File` constructor.
+This is a very manual, and error prone process. Instead use utility functions and example data
+to have the JSON signature file created automatically, as described above (option 1).
 
 Either option can be chosen, but it should be noted that the JSON files/content can
 easily be large, several hundred lines, and may take the focus away from the real help

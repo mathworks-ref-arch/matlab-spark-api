@@ -15,7 +15,9 @@ function generateWrapper(obj)
 
     SW.pf("from __future__ import print_function\n");
     SW.pf("import %s\n", obj.PkgName);
-    SW.pf("import numpy as np\n");
+    SW.pf("import numpy\n");
+    SW.pf("import matlab\n");
+    SW.pf("import threading\n");
     SW.pf("import pandas as pd\n");
     SW.pf("import os\n");
     SW.pf("import queue\n");
@@ -26,8 +28,12 @@ function generateWrapper(obj)
 
     % Import the RuntimePool implementation
     here = fileparts(mfilename('fullpath'));
-    runtimePoolFile = fullfile(here, 'runtimepool.py');
-    SW.pf("%s\n\n", fileread(runtimePoolFile));
+    SW.insertFile(fullfile(here, 'runtimepool.py'));
+    SW.insertFile(fullfile(here, 'psb_utils.py'));
+
+    if obj.Debug
+        SW.insertFile(fullfile(here, 'dbgvar.py'));
+    end
 
     SW.pf("class %s:\n", obj.WrapperClassName);
     SW.indent();
@@ -49,6 +55,7 @@ function generateWrapper(obj)
     SW.unindent();
 
 
+    % SW.pf("@synchronized\n");
     SW.pf("@staticmethod\n");
     SW.pf("def getPool():\n");
     SW.indent();
@@ -69,9 +76,6 @@ function generateWrapper(obj)
     SW.pf('the_pool = Wrapper.getPool()\n\n');
     SW.pf('# The next call is possibly blocking\n')
     SW.pf('wrapper = the_pool.get()\n\n');
-    if obj.Debug
-        SW.pf("print(f'dir(wrapper): {dir(wrapper)}')\n");
-    end
     SW.pf('return wrapper\n\n');
     SW.unindent();
 

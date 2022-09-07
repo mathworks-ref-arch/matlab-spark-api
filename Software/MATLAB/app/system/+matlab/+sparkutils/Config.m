@@ -99,9 +99,13 @@ classdef Config < handle
         
         function editConfig(obj)
             if batchStartupOptionUsed
-                error('SPARK:ERROR', 'Could not open config file for editing, MATLAB stated in batch mode');
+                error('SPARK:ERROR', 'Cannot not open config file for editing, MATLAB started in batch mode');
             else
-                edit(obj.getConfigFile());
+                if isdeployed
+                    error('SPARK:ERROR', 'Cannot not open config file for editing in deployed mode');
+                else
+                    edit(obj.getConfigFile());
+                end
             end
         end
         

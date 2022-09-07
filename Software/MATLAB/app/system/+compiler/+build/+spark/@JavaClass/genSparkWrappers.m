@@ -37,7 +37,8 @@ function genSparkWrappers(obj, JW)
             JW.addEncoder(file.getEncoderStruct() );
         end
 
-        
+        generateOutputNamesConverter(JW, file);
+
         rowIteratorToMWCell(JW, file, baseClassName, wrapperName, useMetrics, useDebug);
         
         plainFunctionWrapper(JW, file, baseClassName);
@@ -63,9 +64,31 @@ function genSparkWrappers(obj, JW)
     
 end
 
+function generateOutputNamesConverter(JW, file)
+
+    SW = JW.newMethod();
+    %     public static Dataset normalizeStuff_setOutputTypes(Dataset df) {
+    %         return df.toDF("Time_sec","VehicleID","CmdCurrent","EngineSpeed");
+    %     }
+    SW.pf('/** Helper method to set the correct output names after a map/mapPartitions method.\n');
+    SW.pf('*/\n');
+    file.API.setOutputNames = sprintf('%s_setOutputNames', file.funcName);
+    SW.pf('public static Dataset<Row> %s(Dataset<Row> ds) {\n', file.API.setOutputNames);
+    SW.indent();
+    outNames = file.getOutputNameArray;
+    outNameStr = join(arrayfun(@(x) """" + x + """", outNames, 'UniformOutput', true), ", ");
+    SW.pf("return ds.toDF(%s);\n", outNameStr);
+    SW.unindent();
+    SW.pf('}\n');
+
+    JW.addMethod(SW);
+end
+
 function rowIteratorToMWCell(JW, file, baseClassName, wrapperName, useMetrics, useDebug)
     SW = JW.newMethod();
     
+    file.API.rowIteratorToMWCell = sprintf("rowIteratorToMWCell_%s", file.funcName);
+
     SW.pf("/** Iterate over a set of rows to create a MWCellArray of the contents\n");
     SW.pf(" * This method will take an Iterator for a Spark Row object, and create\n");
     SW.pf(" * a MATLAB Cell array, containing all the entries.\n");
@@ -75,12 +98,12 @@ function rowIteratorToMWCell(JW, file, baseClassName, wrapperName, useMetrics, u
     SW.pf(" * @param instance An instance of the base class, %s\n", baseClassName);
     SW.pf(" * @return a MATLAB Cell array\n");
     SW.pf(" */\n");
-    SW.pf("public static MWCellArray rowIteratorToMWCell_%s(Iterator<Row> rowIterator, %s instance) {\n", ...
-        file.funcName, baseClassName);
+    SW.pf("public static com.mathworks.extern.java.MWCellArray %s(Iterator<Row> rowIterator, %s instance) {\n", ...
+        file.API.rowIteratorToMWCell, baseClassName);
     SW.indent();
-    SW.pf('MWCellArray mwCell = null;\n');
+    SW.pf('com.mathworks.extern.java.MWCellArray mwCell = null;\n');
     if useDebug
-        SW.pf('log("rowIteratorToMWCell_%s:instance: " + instance);\n', file.funcName);
+        SW.pf('log("%s:instance: " + instance);\n', file.API.rowIteratorToMWCell);
     end
     if useMetrics
         SW.pf('long lastTic;\n');
@@ -118,7 +141,7 @@ function rowIteratorToMWCell(JW, file, baseClassName, wrapperName, useMetrics, u
         SW.pf('log("Number of rows == " + numRows);\n');
         SW.pf('lastTic = tic("convertToRows");\n');
     end
-    SW.pf('mwCell = new MWCellArray(numRows, numCols);\n');
+    SW.pf('mwCell = new com.mathworks.extern.java.MWCellArray(numRows, numCols);\n');
     SW.pf('int[] idx = new int[2];\n');
     SW.pf('for (int k=0; k<numRows; k++) {\n');
     SW.indent();
@@ -130,7 +153,8 @@ function rowIteratorToMWCell(JW, file, baseClassName, wrapperName, useMetrics, u
         CA = caVec(ka);
         SW.pf('idx[1] = %d;\n', ka);
         SW.pf("mwCell.set(idx, %s);\n", ...
-            CA.instantiateMWValue(sprintf("args.get(%d)", ka-1), ...
+            ...CA.instantiateMWValue(sprintf("args.get(%d)", ka-1), ...
+            CA.getBoxedJavaValue(sprintf("args.get(%d)", ka-1), ...
             true ... Cast arguments explicitly
             ));
     end
@@ -363,7 +387,7 @@ function mapPartitionsWrapper(JW, file, baseClassName, wrapperName, useMetrics)
     SW.indent();
     SW.pf("@Override public Iterator<%s> call(Iterator<Row> inputIterator) {\n", retType);
     SW.indent();
-    SW.pf('MWCellArray mwCell = null;\n');
+    SW.pf('com.mathworks.extern.java.MWCellArray mwCell = null;\n');
     SW.pf("ArrayList<%s> retList = new ArrayList<%s>();\n", retType, retType);
     if useMetrics
         SW.pf('long lastTic;\n');
@@ -373,7 +397,7 @@ function mapPartitionsWrapper(JW, file, baseClassName, wrapperName, useMetrics)
     SW.pf("try {\n");
     SW.indent();
     SW.pf("instance = getInstance();\n");
-    SW.pf('mwCell = rowIteratorToMWCell_%s(inputIterator, instance);\n', file.funcName);
+    SW.pf('mwCell = %s(inputIterator, instance);\n', file.API.rowIteratorToMWCell);
 
     SW.pf("int[] dims = mwCell.getDimensions();\n")
     SW.pf("int sz = dims[0];\n");
@@ -464,7 +488,7 @@ function mapPartitionsTableWrapper(JW, file, baseClassName, wrapperName, useMetr
     SW.pf("@Override public Iterator<%s> call(Iterator<Row> inputIterator) {\n", retType);
     SW.indent();
     SW.pf("ArrayList<%s> retList = new ArrayList<%s>();\n", retType, retType);
-    SW.pf('MWCellArray mwCell = null;\n');
+    SW.pf('com.mathworks.extern.java.MWCellArray mwCell = null;\n');
     if useMetrics
         SW.pf('long lastTic;\n');
     end
@@ -494,12 +518,12 @@ function mapPartitionsTableWrapper(JW, file, baseClassName, wrapperName, useMetr
     end
 
     if useMetrics
-        SW.pf('lastTic = tic("rowIteratorToMWCell_%s");\n', file.funcName);
+        SW.pf('lastTic = tic("%s");\n', file.API.rowIteratorToMWCell);
     end
 
-    SW.pf('mwCell = rowIteratorToMWCell_%s(inputIterator, instance);\n', file.funcName);
+    SW.pf('mwCell = %s(inputIterator, instance);\n', file.API.rowIteratorToMWCell);
     if useMetrics
-        SW.pf('toc("rowIteratorToMWCell_%s", lastTic);\n', file.funcName);
+        SW.pf('toc("%s", lastTic);\n', file.API.rowIteratorToMWCell);
     end
 
     if useMetrics
@@ -525,7 +549,11 @@ function mapPartitionsTableWrapper(JW, file, baseClassName, wrapperName, useMetr
 
 %     retValNames = file.generateArgNames('out', 'ret');
     if file.TableInterface
-        caVec = file.OutTypes.TableCols;
+        if isa(file.OutTypes(1), 'compiler.build.spark.types.Table')
+            caVec = file.OutTypes.TableCols;
+        else
+            caVec = file.OutTypes;
+        end
     else
         caVec = file.OutTypes;
     end
@@ -707,7 +735,7 @@ function foreachPartitionsWrapperJava(JW, file, baseClassName, wrapperName, useM
     SW.indent();
     SW.pf("@Override public void call(Iterator<Row> rowIterator) {\n");
     SW.indent();
-    SW.pf('MWCellArray mwCell = null;\n');
+    SW.pf('com.mathworks.extern.java.MWCellArray mwCell = null;\n');
     if useMetrics
         SW.pf('long lastTic;\n');
     end
@@ -718,7 +746,7 @@ function foreachPartitionsWrapperJava(JW, file, baseClassName, wrapperName, useM
     SW.pf("try {\n");
     SW.indent();
     SW.pf("instance = getInstance();\n");
-    SW.pf('mwCell = rowIteratorToMWCell_%s(rowIterator, instance);\n', file.funcName);
+    SW.pf('mwCell = %s(rowIterator, instance);\n', file.API.rowIteratorToMWCell);
 
     SW.pf("/* Call the partition function with these rows.\n");
     SW.pf(" * The partition function is a helper function that was generated\n");

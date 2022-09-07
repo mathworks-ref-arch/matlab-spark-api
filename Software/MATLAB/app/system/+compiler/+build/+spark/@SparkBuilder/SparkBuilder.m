@@ -71,44 +71,7 @@ classdef SparkBuilder < handle
                 mccStr = [mccStr, sprintf(' -a %s', obj.packageDependencies(k))];   %#ok<AGROW>
             end
         end
-        
-        function build(obj)
-            if exist(obj.outputFolder, 'dir')
-                obj.log("Deleting old output folder '%s'", obj.outputFolder);
-                rmdir(obj.outputFolder, 's');
-            end
-            obj.log("Create output folder '%s'", obj.outputFolder);
-            mkdir(obj.outputFolder);
                        
-            genPartitionHelpers(obj);
-            
-            mccStr = mccCommand(obj);
-            obj.log('Executing build command:\n%s\n', mccStr);
-            
-            t0 = tic;
-            mccOutput = evalc(mccStr);
-            obj.log("Time for mcc: %.1f\n", toc(t0));
-
-            if obj.needsPostProcessing
-                parseCommands(obj, mccOutput);
-
-                % Fix serialization issue, if needed.
-                fixSerializable(obj.javaClasses(1));
-
-                obj.log("Generating wrapper file(s)\n");
-                obj.generateWrapperFile();
-
-                obj.rerunBuild();
-
-                obj.fixJarName();
-
-                obj.generateSparkShellHelper();
-            end
-
-            setInfo(obj);
-            
-        end
-               
         function rerunBuild(obj)
             % rerunBuild Runs the build steps after modification
     

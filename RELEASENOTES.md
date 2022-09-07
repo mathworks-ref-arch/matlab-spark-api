@@ -1,5 +1,14 @@
 #  MATLAB *Spark API* - Release Notes
 
+## 0.2.0 (7th Sept 2022)
+* Improved PythonSparkBuilder
+* Improved error handling in deployed mode
+* Make it possible to use arrays as arguments to Python/Java Spark Builder functions
+* Bugfix for `pretty` in R2019a
+
+## 0.1.32 (14th July 2022)
+* Pointing JAVA_HOME to JDK Home for Databricks environment
+
 ## 0.1.31 (7th July 2022)
 * Support `mapInPandas`
 * Rename `func_pandas` to `func_applyInPandas`

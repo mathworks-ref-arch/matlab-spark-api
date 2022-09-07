@@ -140,7 +140,17 @@ function T = getMatlabTableFromDataset2(ds)  % New (optimized) implementation
                     %colData= cellfun(@(d)datetime(char(d)),colData,'uniform',0);
                     colData = cellfun(@javaItemToMatlabItem,colData,'uniform',0);
                 case 'array'
-                    colData = cellfun(@javaArrayToMatlabArray2,colData,'uniform',0);
+                    try
+                        % Try sorting this out with normal MATLAB
+                        % conversions. Default to other method if needed.
+                        elemType = string(colType.elementType);
+                        elemMapping = matlab.sparkutils.datatypeMapper('spark', elemType);
+                        elemMATLABType = elemMapping.MATLABType;
+                        convFun = str2func(elemMATLABType);
+                        colData = cellfun(@(x) convFun(x.array), colData, 'UniformOutput',false);
+                    catch
+                        colData = cellfun(@javaArrayToMatlabArray2,colData,'uniform',0);
+                    end
                 case 'vector'
                     colData = cellfun(@(x) x.toArray,colData,'uniform',0);
                 case 'struct'

@@ -187,9 +187,18 @@ classdef JavaClass < handle
             inputString = arrayfun(@(x) sprintf("""%s""", x), inputNames).join(", ");
             SW.pf('"VariableNames", [%s]);\n\n', inputString);
             SW.unindent();
-            SW.pf('T_OUT = %s(%s);\n\n', F.funcName, ...
-                F.generateJavaTableHelperArgs("T_IN"));
-            SW.pf('RESULT = table2cell(T_OUT);\n\n');
+            if F.TableAggregate
+                SW.pf("%% Run the actual algorithm\n");
+
+                SW.pf("OUT_C = cell(1, %d);\n", F.nArgOut);
+                SW.pf("[OUT_C{:}] = %s(%s);\n\n", F.funcName, F.generateJavaTableHelperArgs("T_IN"));
+
+                SW.pf("RESULT = OUT_C;\n")
+            else
+                SW.pf('T_OUT = %s(%s);\n\n', F.funcName, ...
+                    F.generateJavaTableHelperArgs("T_IN"));
+                SW.pf('RESULT = table2cell(T_OUT);\n\n');
+            end
             SW.unindent();
             SW.pf("end\n\n");
             SW.pf("%% End of file: %s\n\n", partitionName);

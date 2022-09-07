@@ -54,7 +54,7 @@ classdef SparkSessionHandler < handle
             idx = SH.findSession(sparkMaster);
             if isempty(idx)
                 if isDatabricksEnvironment
-                    spark = getDefaultDatabricksSession();
+                    spark = databricks.internal.getDatabricksSparkSession();
                 else
                     spark = getDefaultSparkSession(...
                         ['matlab-spark-', datestr(now,30)], ...

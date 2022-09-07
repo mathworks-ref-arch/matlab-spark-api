@@ -1,3 +1,14 @@
+
+def synchronized(func):
+    func.__lock__ = threading.Lock()
+		
+    def synced_func(*args, **kws):
+        with func.__lock__:
+            return func(*args, **kws)
+
+    return synced_func
+
+
 class RuntimePool:
     """This class is a wrapper for a pool of different runtimes.
     It will create a pool of N entries, where N is deduced from
@@ -30,6 +41,7 @@ class RuntimePool:
         # Initialize the runtime to run out-of process
         initFunction((['-outproc']))
 
+    @synchronized
     def get(self):
         if (self.pool.qsize() > 0):
             return self.pool.get()
@@ -41,5 +53,8 @@ class RuntimePool:
         else:
             return self.pool.get()
 
+    @synchronized
     def put(self, wrapper):
         self.pool.put(wrapper)
+
+# End of RuntimePool

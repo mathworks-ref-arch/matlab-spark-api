@@ -32,7 +32,11 @@ if __name__ == "__main__":
                 ver = v
 
     print('ver: ' + ver['name'])
-    str = "mvn --batch-mode -P" + profile + " -Dspark.fullversion=" + ver['name']
+    
+    # Pointing Java home to the jdk directory - required only for the databricks environment
+    javaHome = "JAVA_HOME=/usr/lib/jvm/zulu8-ca-amd64 " if(os.environ.get('DATABRICKS_RUNTIME_VERSION',None) != None) else ""
+
+    str = javaHome + "mvn --batch-mode -P" + profile + " -Dspark.fullversion=" + ver['name']
     for opt in ver['maven']:
         # print("opt[" + opt['name'] + "] == " + opt['value'])
         str += " -D" + opt['name'] + "=" + opt['value']
