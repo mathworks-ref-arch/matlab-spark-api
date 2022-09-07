@@ -221,10 +221,7 @@ classdef File < handle
             end
             formatStr = sprintf("row[%%d]");
             names = arrayfun(@(x) sprintf(formatStr, x-1), (1:N));
-            str = join(names, ", ");
-            if N > 1
-                str = "[" + str + "]";
-            end
+            str = "[" + join(names, ", ") + "]";
         end
 
         function names = generatePythonTableRestArgs(obj)

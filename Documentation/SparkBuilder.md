@@ -316,7 +316,7 @@ of each input argument. This is necessary for the following reason.
 The function that is compiled, in this example `normalizeStuff`, expects a MATLAB table
 as input. The `mapPartition` method provides an iterator, not a table. A helper function
 will take the data and create a MATLAB table. To create a table with the expected names,
-instead of just `Var1`, `Var2`, etc., the names must be provied to this function.
+instead of just `Var1`, `Var2`, etc., the names must be provided to this function.
 
 The example function here looks like below, expecting at least the columns `CmdCurrent`
 and `EngineSpeed`. For this reason, the names must be specified.

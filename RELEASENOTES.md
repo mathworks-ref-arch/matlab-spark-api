@@ -1,5 +1,10 @@
 #  MATLAB *Spark API* - Release Notes
 
+## 0.1.31 (7th July 2022)
+* Support `mapInPandas`
+* Rename `func_pandas` to `func_applyInPandas`
+* Lazy creation of MATLAB Runtime for Python interface
+
 ## 0.1.30 (10th June 2022)
 * Support for vectors in `dataset2table`
 * Support string type for SparkBuilder additional arguments

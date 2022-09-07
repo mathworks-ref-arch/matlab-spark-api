@@ -17,12 +17,17 @@ function generateWrapper(obj)
     SW.pf("import %s\n", obj.PkgName);
     SW.pf("import numpy as np\n");
     SW.pf("import pandas as pd\n");
-    SW.pf("import os\n");    
-    SW.pf("import queue\n");    
+    SW.pf("import os\n");
+    SW.pf("import queue\n");
     if obj.Metrics
         SW.pf("import pyspark\n");
     end
     SW.pf("from pyspark.sql.functions import pandas_udf, PandasUDFType\n\n");
+
+    % Import the RuntimePool implementation
+    here = fileparts(mfilename('fullpath'));
+    runtimePoolFile = fullfile(here, 'runtimepool.py');
+    SW.pf("%s\n\n", fileread(runtimePoolFile));
 
     SW.pf("class %s:\n", obj.WrapperClassName);
     SW.indent();
@@ -50,28 +55,7 @@ function generateWrapper(obj)
     SW.pf('"""Return a pool object, that will deal with the MATLAB runtimes"""\n');
     SW.pf('if Wrapper.pool is None:\n');
     SW.indent();
-    SW.pf("# pool is None, create a fresh one\n");
-    SW.pf('Wrapper.pool = queue.SimpleQueue()\n\n');
-
-    SW.pf('# Try to get cpu_count from os\n');
-    SW.pf('Wrapper.poolSize = os.cpu_count()\n')
-    if obj.Debug
-        SW.pf("print('Determining pool size')\n");
-        SW.pf("print(f'poolSize == {Wrapper.poolSize}')\n");
-    end
-    SW.pf('if Wrapper.poolSize is None:\n')
-    SW.indent();
-    SW.pf('Wrapper.poolSize = 4\n\n')
-    SW.unindent()
-
-    SW.pf("# Make sure to use out-of-process runtime\n")
-    SW.pf("%s.initialize_runtime(['-outproc'])\n\n", obj.PkgName);
-    
-    SW.pf("# populate pool with runtimes\n");
-    SW.pf('for k in range(Wrapper.poolSize):\n');
-    SW.indent();
-    SW.pf('Wrapper.pool.put(Wrapper())\n\n');
-    SW.unindent();
+    SW.pf("Wrapper.pool = RuntimePool(%s.initialize_runtime)\n\n", obj.PkgName);
     SW.unindent();
 
     SW.pf('return Wrapper.pool\n\n');

@@ -112,20 +112,12 @@ function generateTable(obj, F)
     SW.indent();
     SW.pf("%% %s Helper function for %s\n\n", funcName, F.funcName);
 
-
-    % If we only have one column, this will be "optimized" into the
-    % underlying type, so we have to make a distinction here
-    numTableColumns = length(F.InTypes(1).TableCols);
-    if numTableColumns == 1
-        SW.pf("IN_T = cell2table(IN(:));\n\n");
-    else
-        SW.pf("%% We need the first entry to deduce the number of columns.\n");
-        SW.pf("N = numel(IN);\n")
-        SW.pf("numCols = numel(IN{1});\n\n")
-        SW.pf("%% Reshape the cell array to create a table\n");
-        SW.pf("reshapedCells = reshape([IN{:}], numCols, N)';\n");
-        SW.pf("IN_T = cell2table(reshapedCells);\n\n");
-    end
+    SW.pf("%% We need the first entry to deduce the number of columns.\n");
+    SW.pf("N = numel(IN);\n")
+    SW.pf("numCols = numel(IN{1});\n\n")
+    SW.pf("%% Reshape the cell array to create a table\n");
+    SW.pf("reshapedCells = reshape([IN{:}], numCols, N)';\n");
+    SW.pf("IN_T = cell2table(reshapedCells);\n\n");
     
     inputNames = F.InTypes(1).names;
     if ~isempty(inputNames)

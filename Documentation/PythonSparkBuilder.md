@@ -179,23 +179,50 @@ The *table* is a MATLAB table.
 ### Running Pandas on a table function
 It's also possible to run Pandas functions on a Table function. Pandas wrappers will automatically
 be generated, and can be called like in the following example. Here 2 functions are shown,
-`myfunction` which takes a table as input and a table as output, and myotherfunction, which takes a table and a constant
+`myfunction` which takes a table as input and a table as output, and `myotherfunction`, which takes a table and a constant
 as input, and a table as output.
 
 The `wrapper` also contains constants with the output schemas for the pandas functions.
 
+The wrapper functions gets the extension `_applyInPandas`, and the schema gets the extension
+`_output_schema`. So for the function `my_function` these will be respecitvely 
+`myfunction_applyInPandas`, `myfunction_output_schema`
+
+> **Note** In a previous version, these extensions were merely `_pandas` and `_pandas_schema`.
+> This has changed now, but these older names are still present and pointing to the new
+> functions. These additional names are deprecated, and will be removed in a future release.
+
+#### Use `applyInPandas` on the result of a groupBy operation
 ```python
-from demo.anomaly.wrapper import myfunction_pandas, myfunction_pandas_schema
+from demo.anomaly.wrapper import myfunction_applyInPandas, myfunction_output_schema
 
 # This function has an interface like Tout = myfunction(Tin)
 df3_fix = df3.groupby("cat").applyInPandas(
-    myfunction_pandas, schema=myfunction_pandas_schema)
+    myfunction_applyInPandas, schema=myfunction_output_schema)
 
 # This function has an interface like Tout = myotherfunction(Tin, sigma)
 # Sigma is just a constant, and not a table.
 df3_fix2 = df3.groupby("cat").applyInPandas(
-    myotherfunction_pandas(10000.0), schema=myotherfunction_pandas_schema)
+    myotherfunction_applyInPandas(10000.0), schema=myotherfunction_output_schema)
 ```
+
+#### Use `mapInPandas` on a dataframe
+This functionality is very similar to the previous `applyInPandas`, but this function
+operates directly on a `Dataframe`.
+
+```python
+from demo.anomaly.wrapper import myfunction_mapInPandas, myfunction_output_schema
+
+# This function has an interface like Tout = myfunction(Tin)
+df3_fix = df3..mapInPandas(
+    myfunction_mapInPandas, schema=myfunction_output_schema)
+
+# This function has an interface like Tout = myotherfunction(Tin, sigma)
+# Sigma is just a constant, and not a table.
+df3_fix2 = df3..mapInPandas(
+    myotherfunction_mapInPandas(10000.0), schema=myotherfunction_output_schema)
+```
+
 
 ### Running Pandas series as a UDF
 If one of the generated MATLAB functions

@@ -14,7 +14,9 @@ function generateFunctionWrapper(obj, SW, fileObj)
 
     genMapPartitionsTable()
 
-    genPandasTable()
+    genApplyInPandas()
+    
+    genMapInPandas()
 
     genPandasSeries()
 
@@ -32,7 +34,10 @@ function generateFunctionWrapper(obj, SW, fileObj)
                     ", partition_id int" + ...
                     ", matlab_runtime string";
             end
-            SW.pf("%s_pandas_schema = '%s'\n", fileObj.funcName, schema);
+            SW.pf("%s_output_schema = '%s'\n", fileObj.funcName, schema);
+            SW.pf('# The next row is for backwards compatibility, and will be removed\n')
+            SW.pf('# in a later release.\n');
+            SW.pf("%s_pandas_schema = %s_output_schema\n", fileObj.funcName, fileObj.funcName);
         end
 
     end
@@ -141,12 +146,13 @@ function generateFunctionWrapper(obj, SW, fileObj)
         end
     end
 
-    function genPandasTable()
+    function genApplyInPandas()
         if fileObj.TableInterface
+            applyInPandasName = sprintf("%s_applyInPandas", fileObj.funcName);
             if fileObj.ScopedTables
 
                 extraArgs = fileObj.generatePythonTableRestArgs;
-                SW.pf("def %s_pandas(%s):\n", fileObj.funcName, extraArgs);
+                SW.pf("def %s(%s):\n", applyInPandasName, extraArgs);
                 SW.indent();
                 SW.pf('""" A function to be used with applyInPandas.\n');
                 SW.pf('This function takes additional arguments, which create\n')
@@ -165,7 +171,7 @@ function generateFunctionWrapper(obj, SW, fileObj)
 
             else
 
-                SW.pf("def %s_pandas(pdf : pd.DataFrame):\n", fileObj.funcName);
+                SW.pf("def %s(pdf : pd.DataFrame):\n", applyInPandasName);
                 SW.indent();
                 SW.pf('""" A function to be used with applyInPandas."""\n');
                 SW.pf("instance = %s.getInstance()\n", obj.WrapperClassName);
@@ -174,6 +180,47 @@ function generateFunctionWrapper(obj, SW, fileObj)
                 createPandasResultFrame();
                 SW.unindent();
             end
+            SW.pf('%s_pandas = %s\n\n', fileObj.funcName, applyInPandasName)
+        end
+    end
+
+    function genMapInPandas()
+        if fileObj.TableInterface
+            applyInPandasName = sprintf("%s_applyInPandas", fileObj.funcName);
+            mapInPandasName = sprintf("%s_mapInPandas", fileObj.funcName);
+            if fileObj.ScopedTables
+
+                extraArgs = fileObj.generatePythonTableRestArgs;
+                SW.pf("def %s(%s):\n", mapInPandasName, extraArgs);
+                SW.indent();
+                SW.pf('""" A function to be used with mapInPandas.\n');
+                SW.pf('This function takes additional arguments, which create\n')
+                SW.pf('a local scope for this function. """\n')
+                innerName = sprintf("%s_table_inner", fileObj.funcName);
+                SW.pf("def %s(iterator):\n", innerName);
+                SW.indent();
+                SW.pf("nonlocal %s\n", extraArgs);
+                SW.pf("func = %s(%s)\n", applyInPandasName, extraArgs);
+                SW.pf("for pdf in iterator:\n");
+                SW.indent();
+                SW.pf("yield func(pdf)\n");
+                SW.unindent();
+                SW.unindent();
+                SW.pf("return %s\n\n", innerName);
+                SW.unindent();
+
+            else
+
+                SW.pf("def %s(iterator):\n", mapInPandasName);
+                SW.indent();
+                SW.pf('""" A function to be used with mapInPandas."""\n');
+                SW.pf("for pdf in iterator:\n");
+                SW.indent();
+                SW.pf("yield %s(pdf)\n\n", applyInPandasName);
+                SW.unindent();
+                SW.unindent();
+            end
+
         end
     end
 
