@@ -204,6 +204,19 @@ classdef JavaClass < handle
             SW.pf("%% End of file: %s\n\n", partitionName);
             
         end
+
+        function fullName = getFullClassName(obj)
+            fullName = string(obj.parent.package) + "." + string(obj.name);
+        end
+
+        function name = getMCRFactoryName(obj)
+            pkg = obj.parent.package;
+            pkgParts = split(string(pkg), ".");
+            name = char(pkgParts(end));
+            name(1) = upper(name(1));
+            name = [pkg, '.', name, 'MCRFactory'];
+        end
+
     end
     
     methods % Set/Get methods

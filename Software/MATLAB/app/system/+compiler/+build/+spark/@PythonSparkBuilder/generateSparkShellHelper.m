@@ -29,8 +29,9 @@ function fileName = genFile(obj)
     SW.pf("echo ""This script requires that the variable SPARK_HOME is set and pointing to a valid Spark installation""\n");
     SW.pf("echo ""Starting Spark shell from $SPARK_HOME""\n\n");
 
+    MCR_ROOT = matlab.utils.getRuntimeMapping('current', 'Runtime');
     SW.pf("export MCR_ROOT=/usr/local/MATLAB/MATLAB_Runtime\n");
-    SW.pf("export MCR=$MCR_ROOT/v912\n");
+    SW.pf("export MCR=$MCR_ROOT/%s\n", MCR_ROOT);
     SW.pf("export LD_LIBRARY_PATH=${MCR}/runtime/glnxa64:${MCR}/bin/glnxa64:${MCR}/sys/os/glnxa64:${MCR}/sys/opengl/lib/glnxa64\n\n");
     SW.pf("export PYSPARK_PYTHON=python3.8\n\n");
     

@@ -32,9 +32,12 @@ function fileName = genFile(obj, jarFile)
     SW.pf("MSU=""%s""\n", ...
         matlab.sparkutils.getMatlabSparkUtilityFullName('fullpath', true, 'shaded', false));
     SW.pf("APP=""${SCRIPT_DIR}/%s""\n", jarFile.name);
-    SW.pf("JARS=""$JB,$APP,$MSU""\n\n");
+    SW.pf("SBRQ=""%s""\n", matlab.sparkutils.getSparkBuilderRuntimeQueueFullName());
+    SW.pf("JARS=""$JB,$APP,$MSU,$SBRQ""\n\n");
+    
+    MCR_ROOT = matlab.utils.getRuntimeMapping('current', 'Runtime');
     SW.pf("export MCR_ROOT=/usr/local/MATLAB/MATLAB_Runtime\n");
-    SW.pf("export MCR=$MCR_ROOT/v912\n");
+    SW.pf("export MCR=$MCR_ROOT/%s\n", MCR_ROOT);
     SW.pf("export LD_LIBRARY_PATH=${MCR}/runtime/glnxa64:${MCR}/bin/glnxa64:${MCR}/sys/os/glnxa64:${MCR}/sys/opengl/lib/glnxa64\n\n");
 
     baseDir = fileparts(pwd);
@@ -47,6 +50,8 @@ function fileName = genFile(obj, jarFile)
     % SW.pf("import org.apache.spark.sql.Encoders\n");
     % SW.pf("import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema\n");
     SW.pf("import com.mathworks.toolbox.javabuilder._\n");
+    SW.pf("import com.mathworks.sparkbuilder.RuntimeQueue;\n")
+    SW.pf("val Q = RuntimeQueue.getSingleton(true)\n")
     for k=1:length(obj.javaClasses)
         JC = obj.javaClasses(k);
         SW.pf("import %s.{%s => W%d}\n", obj.package, JC.WrapperName, k);

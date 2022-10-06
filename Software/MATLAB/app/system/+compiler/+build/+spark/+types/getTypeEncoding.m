@@ -57,7 +57,7 @@ function arr = getArray(C, argNames)
                     }
                 arr{k} = {classType, getInputSize(E), argNames{k}};
             case {'char', 'string'}
-                arr{k} = {"string", getInputSize(E), argNames{k}};
+                arr{k} = {"string", getInputSize(string(E)), argNames{k}};
             otherwise
                 error('SPARK:ERROR', 'Unsupported datatype: %s', classType);
         end

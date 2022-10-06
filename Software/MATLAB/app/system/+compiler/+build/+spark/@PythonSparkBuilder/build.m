@@ -22,8 +22,12 @@ function build(obj, options)
 
     buildOpts = addHelperFilesToBuild(obj);
 
-    obj.BuildResults = compiler.build.pythonPackage(buildOpts);
-
+    if compiler.build.spark.internal.hasShippingPythonPackage()
+        obj.BuildResults = compiler.build.pythonPackage(buildOpts);
+    else
+        obj.BuildResults = compiler.build.spark.internal.pythonPackage(buildOpts);
+    end
+    
     % Overwrite the original setup.py file, to comply with things like
     % bdist_wheel
     obj.genPythonSetup();

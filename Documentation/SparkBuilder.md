@@ -20,8 +20,13 @@ function F = myfun(N)
 end
 ```
 
-**Note** Please be aware that String array arguments are only supported in MATLAB
-Release R2020b and later.
+> **Note** The SparkBuilder functions may take strings as arguments. Return values, however,
+> cannot be a `string`. These should instead be converted to `char arrays`.
+> The technical reason for this is that the MATLAB Runtime is spawned *out-of-process*,
+> as this is preferable for performance reasons on a Spark cluster. The matlab `string` type,
+> however, cannot be returned from the MATLAB Runtime when running *out-of-process*.
+> If this is enabled in a later release, this package will adapt accordingly.
+
 ### Building the Jar file
 We create a `SparkBuilder` object, specifying the output folder (`outFolder`) and
 the name of package (`mw.datasetexample`) that the classes will belong to.

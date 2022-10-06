@@ -105,22 +105,7 @@ classdef SparkBuilder < handle
             end
             classObj.parent = obj;
         end
-        
-        function parseCommands(obj, mccOutput)
-            toks = regexp(mccOutput, 'Executing command: ([^\n]+)', 'tokens');
-            toks = [toks{:}];
-            
-            obj.compileCmd = toks{1};
-            obj.jarCmd = toks{2};
-            obj.docCmd = toks{3};
-            
-            if ispc
-                obj.compileCmd = obj.compileCmd(2:end-2);
-                obj.jarCmd = obj.jarCmd(2:end-2);
-                obj.docCmd = obj.docCmd(2:end-2);
-            end
-        end
-        
+               
         function addPackageDependency(obj, dep)
             dep = string(dep);
             if isempty(obj.packageDependencies)
@@ -272,6 +257,7 @@ classdef SparkBuilder < handle
             end
             
             obj.addCompileDependency( compileJar );
+            obj.addCompileDependency( matlab.sparkutils.getSparkBuilderRuntimeQueueFullName());
             
             obj.addPackageDependency(...
                 matlab.sparkutils.getMatlabSparkUtilityFullName('fullpath', true, 'shaded', false));

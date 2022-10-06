@@ -3,18 +3,21 @@ function PSB = pythonPackage(varargin)
     %
     %  Please refer to the documentation delivered in this package for
     %  PythonSparkBuilder for usage examples.
-
+    
     % Copyright 2022 MathWorks, Inc.
-
+    
     % TODO: These may not be the only two cases
-    if nargin == 1 && isa(varargin{1}, "compiler.build.PythonPackageOptions")
+    if nargin == 1 && (...
+            isa(varargin{1}, "compiler.build.PythonPackageOptions") || ...
+            isa(varargin{1}, "compiler.build.spark.internal.PythonPackageOptions")...
+            )
         buildOpts = varargin{1};
     else
         buildOpts = compiler.build.PythonPackageOptions(varargin{:});
     end
-
+    
     PSB = compiler.build.spark.PythonSparkBuilder(buildOpts);
-
+    
     PSB.build()
-
+    
 end

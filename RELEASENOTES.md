@@ -1,5 +1,11 @@
 #  MATLAB *Spark API* - Release Notes
 
+## 0.2.2 (30th Sept 2022)
+* Global handling of MATLAB Runtime for Java jobs, improving resource utilization.
+* Make `runSparkShell` functions Runtime version dependent
+* Add support for `pythonPackage` for older releases.
+* Fixed `SparkBuilder` issue for release R2022b.
+
 ## 0.2.1 (7th Sept 2022)
 * Update `SparkApiRef.md`
 

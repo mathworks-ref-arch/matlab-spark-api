@@ -41,7 +41,7 @@ function ds = table2dataset( T, spark, schema )
     %   dataset = spark.read.format("parquet").load("/my/files")
     %   T = dataset2table(dataset);
     %   T = runAlgorithm(T);
-    %   schema = T.schema;
+    %   schema = dataset.schema;
     %   dataset = table2dataset(matlabTable, sparkSession, schema);
     %
     % The optional schema argument can also be specified as a cell-array of

@@ -1,3 +1,4 @@
 delta-core*.jar
 matlab-spark-utility*.jar
 spark-avro*.jar
+sparkbuilder-runtimequeue*.jar

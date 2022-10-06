@@ -39,7 +39,7 @@ classdef PythonSparkBuilder < handle
     methods
         function obj = PythonSparkBuilder(initArg)
             switch class(initArg)
-                case 'compiler.build.PythonPackageOptions'
+                case {'compiler.build.PythonPackageOptions','compiler.build.spark.internal.PythonPackageOptions' }
                     obj.BuildOpts = initArg;
                 case 'compiler.build.Results'
                     obj.BuildResults = initArg;

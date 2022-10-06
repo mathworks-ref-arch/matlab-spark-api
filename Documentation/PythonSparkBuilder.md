@@ -33,6 +33,15 @@ buildOpts = compiler.build.PythonPackageOptions(...
 OUT = compiler.build.spark.pythonPackage(buildOpts)
 ```
 
+> **Note** the `pythonPackage` and `PythonPackageOptions` function/class were added
+> to MATLAB in R2021a, and thus cannot be used in earlier releases. To address this
+> in earlier releases, there are alternatives to these functions.
+> If using e.g. R2020a, use the command `compiler.build.spark.PythonPackageOptions`
+> for the options, for the build.
+>
+> This interface's support for Python based packaging for releases prior to R2021a,
+> is partial. Moving to a newer release of MATLAB is recommended.
+
 At this point, there should be a *wheel* present in the corresponding dist folder:
 ```bash
 $ ls outAnomaly/dist 

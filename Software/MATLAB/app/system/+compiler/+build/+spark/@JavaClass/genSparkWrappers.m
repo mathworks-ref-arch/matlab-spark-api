@@ -138,8 +138,7 @@ function rowIteratorToMWCell(JW, file, baseClassName, wrapperName, useMetrics, u
     SW.pf('/* Create a cell array with the rows and columns */\n');
     SW.pf('int numRows = sparkRows.size();\n');
     if useMetrics
-        SW.pf('log("Number of rows == " + numRows);\n');
-        SW.pf('lastTic = tic("convertToRows");\n');
+        SW.pf('lastTic = tic("convertToRows, " + numRows + " rows");\n');
     end
     SW.pf('mwCell = new com.mathworks.extern.java.MWCellArray(numRows, numCols);\n');
     SW.pf('int[] idx = new int[2];\n');
@@ -162,7 +161,7 @@ function rowIteratorToMWCell(JW, file, baseClassName, wrapperName, useMetrics, u
     SW.unindent();
     SW.pf('}\n');
     if useMetrics
-        SW.pf('toc("convertToRows", lastTic);\n');
+        SW.pf('toc("convertToRows, " + numRows + " rows", lastTic);\n');
     end
     
     SW.pf('return mwCell;\n');

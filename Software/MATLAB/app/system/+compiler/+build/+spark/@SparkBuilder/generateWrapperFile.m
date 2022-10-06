@@ -46,9 +46,8 @@ function generateWrapperFile(obj)
             JW.addImport("org.apache.spark.sql.Dataset");
             JW.addImport("org.apache.spark.sql.SparkSession");
 
+            JW.addImport("com.mathworks.sparkbuilder.RuntimeQueue");
             JW.addImport("com.mathworks.scala.SparkUtilityHelper");
-
-            addRuntimePool(JW, wrapperName, baseClassName, obj.Debug, obj.Metrics);
 
             addRowUtility(JW, "Row");
             % addRowUtility(JW, "GenericRowWithSchema");
@@ -80,14 +79,48 @@ function generateWrapperConstructor(JW, JC)
     JW.addImport("com.mathworks.toolbox.javabuilder.MWCtfClassLoaderSource");
 
     SW = JW.newMethod();
-    SW.pf("public static synchronized RuntimeQueue getRuntimeQueue(){\n");
+    SW.pf("public static class ClazzArgs {\n");
     SW.indent();
-    SW.pf("if (queue == null) {\n");
+    SW.pf("Class<?> clazz;\n")
+    SW.pf("Class<?> factoryClazz;\n")
+    SW.pf("public ClazzArgs(Class<?> clazz_, Class<?> factoryClazz_) {\n");
     SW.indent();
-    SW.pf("queue = new RuntimeQueue();\n");
+    SW.pf("clazz = clazz_;\n");
+    SW.pf("factoryClazz = factoryClazz_;\n");
     SW.unindent();
     SW.pf("}\n");
-    SW.pf("return queue;\n");
+    SW.unindent();
+    SW.pf("}\n");
+    JW.addMethod(SW);
+    JW.addVariable("private static ClazzArgs ARGS = null;\n")
+
+    SW = JW.newMethod();
+    SW.pf("public static ClazzArgs getClazzArgs() {\n");
+    SW.indent();
+    SW.pf("if (%s.ARGS == null) {\n", wrapperName)
+    SW.indent();
+    SW.pf("try {\n");
+    SW.indent();
+    SW.pf("Class<?> clazz = Class.forName(""%s"");\n", JC.getFullClassName);
+    SW.pf("Class<?> factoryClazz = Class.forName(""%s"");\n", JC.getMCRFactoryName);
+    SW.pf("%s.ARGS = new ClazzArgs(clazz, factoryClazz);\n", wrapperName);
+    SW.unindent();
+    SW.pf("} catch (ClassNotFoundException ex) {\n");
+    SW.indent();
+    SW.pf("ex.printStackTrace();\n")
+    SW.unindent();
+    SW.pf("}\n");
+    SW.unindent();
+    SW.pf("}\n");
+    SW.pf("return %s.ARGS;\n", wrapperName)
+    SW.unindent();
+    SW.pf("}\n");
+    JW.addMethod(SW);
+    
+    SW = JW.newMethod();
+    SW.pf("public static synchronized RuntimeQueue getRuntimeQueue(){\n");
+    SW.indent();
+    SW.pf("return RuntimeQueue.getSingleton(%s);\n", string(JC.parent.Debug));
     SW.unindent();
     SW.pf("}\n");
     JW.addMethod(SW);
@@ -96,13 +129,22 @@ function generateWrapperConstructor(JW, JC)
     SW = JW.newMethod();
     SW.pf("public static synchronized %s getInstance() throws MWException {\n", baseClassName);
     SW.indent();
-    SW.pf("return getRuntimeQueue().getInstance();\n");
+    SW.pf("RuntimeQueue queue = RuntimeQueue.getSingleton(%s);\n", string(JC.parent.Debug));
+    % TODO: Make these classes static instead.
+    SW.pf("ClazzArgs args = %s.getClazzArgs();\n", wrapperName)
+%     SW.pf("Class<?> clazz = Class.forName(""%s"");\n", JC.getFullClassName());
+%     SW.pf("Class<?> factoryClazz = Class.forName(""%s"");\n", JW.getMCRFactoryName());
+    SW.pf("%s inst = (%s) queue.getInstance(args.clazz, args.factoryClazz);\n", baseClassName, baseClassName);
+    SW.pf("return inst;\n");
     SW.unindent();
     SW.pf("}\n");
 
     SW.pf("public static synchronized void releaseInstance(%s inst) {\n", baseClassName);
     SW.indent();
-    SW.pf("getRuntimeQueue().releaseInstance(inst);\n");
+    SW.pf("RuntimeQueue queue = RuntimeQueue.getSingleton(true);\n");
+    SW.pf("ClazzArgs args = %s.getClazzArgs();\n", wrapperName)
+%     SW.pf("Class<?> clazz = Class.forName(""%s"");\n", JC.getFullClassName());
+    SW.pf("getRuntimeQueue().releaseInstance(inst, args.clazz);\n");
     SW.unindent();
     SW.pf("}\n");
 
@@ -139,19 +181,20 @@ function generateMetricUtils(JW)
 
     SW.pf("public static void log(String msg) {\n");
     SW.indent();
-    SW.pf("long now = System.currentTimeMillis();\n");
-    SW.pf("String nowDateStr = sdf.format(new Date(now));\n");
-    SW.pf("String hostInfo;\n")
-    SW.pf("try {\n");
-    SW.indent();
-    SW.pf("hostInfo = java.net.InetAddress.getLocalHost().toString();\n")
-    SW.unindent();
-    SW.pf("} catch (java.net.UnknownHostException uhex) {\n");
-    SW.indent();
-    SW.pf('hostInfo = "UNKNOWN_HOST_ISSUE";\n');
-    SW.unindent();
-    SW.pf('}\n');
-    SW.pf('System.out.println(nowDateStr + " " + hostInfo + " " + msg);\n');
+    SW.pf("RuntimeQueue.log(msg);\n");
+    %     SW.pf("long now = System.currentTimeMillis();\n");
+    %     SW.pf("String nowDateStr = sdf.format(new Date(now));\n");
+    %     SW.pf("String hostInfo;\n")
+    %     SW.pf("try {\n");
+    %     SW.indent();
+    %     SW.pf("hostInfo = java.net.InetAddress.getLocalHost().toString();\n")
+    %     SW.unindent();
+    %     SW.pf("} catch (java.net.UnknownHostException uhex) {\n");
+    %     SW.indent();
+    %     SW.pf('hostInfo = "UNKNOWN_HOST_ISSUE";\n');
+    %     SW.unindent();
+    %     SW.pf('}\n');
+    %     SW.pf('System.out.println(nowDateStr + " " + hostInfo + " " + msg);\n');
     SW.unindent();
     SW.pf("}\n");
     JW.addMethod(SW);
@@ -159,9 +202,10 @@ function generateMetricUtils(JW)
     SW = JW.newMethod();
     SW.pf("public static long tic(String msg) {\n");
     SW.indent();
-    SW.pf('log("Starting " + msg);\n');
-    SW.pf("long lastTic = System.currentTimeMillis();\n");
-    SW.pf("return lastTic;\n");
+    SW.pf("return RuntimeQueue.tic(msg);\n");
+%     SW.pf('log("Starting " + msg);\n');
+%     SW.pf("long lastTic = System.currentTimeMillis();\n");
+%     SW.pf("return lastTic;\n");
     SW.unindent();
     SW.pf("}\n");
     JW.addMethod(SW);
@@ -169,10 +213,11 @@ function generateMetricUtils(JW)
     SW = JW.newMethod();
     SW.pf("public static void toc(String msg, long lastTic) {\n");
     SW.indent();
-    SW.pf("long now = System.currentTimeMillis();\n");
-    SW.pf("long elapsedL = now-lastTic;\n");
-    SW.pf("double elapsed = (double)elapsedL / 1000.0;\n");
-    SW.pf('log("Finished " + msg + " " + elapsed + " sec");\n');
+    SW.pf("RuntimeQueue.toc(msg, lastTic);\n");
+%     SW.pf("long now = System.currentTimeMillis();\n");
+%     SW.pf("long elapsedL = now-lastTic;\n");
+%     SW.pf("double elapsed = (double)elapsedL / 1000.0;\n");
+%     SW.pf('log("Finished " + msg + " " + elapsed + " sec");\n');
     SW.unindent();
     SW.pf("}\n");
     JW.addMethod(SW);
@@ -192,164 +237,5 @@ function addRowUtility(JW, typeName)
     SW.unindent();
     SW.pf("}\n");
     JW.addMethod(SW);
-
-end
-
-function addRuntimePool(JW, wrapperName, baseClassName, debugOn, metricsOn)
-    JW.addVariable('private static transient RuntimeQueue queue = null');
-    JW.addImport('java.util.concurrent.ArrayBlockingQueue');
-    % JW.addImport("java.util.LinkedList");
-
-    SW = JW.newMethod();
-    %% RuntimeQueue constructor
-    SW.pf('class RuntimeQueue {\n');
-    SW.indent();
-    SW.pf('int poolSize = 0;\n');
-    SW.pf('int numCreated = 0;\n');
-    SW.pf('ArrayBlockingQueue<%s> pool = null;\n', baseClassName);
-    SW.pf('public RuntimeQueue() {\n');
-    SW.indent();
-    SW.pf('// The next call changes a setting that will make the Runtime be created out of\n');
-    SW.pf('// process. It must be the\n');
-    SW.pf('// first call to the runtime, before any application is initialized.\n');
-    SW.pf('if (!MWApplication.isMCRInitialized()) {\n')
-    SW.indent();
-    SW.pf('MWApplication.initialize(MWMCROption.OUTPROC);\n');
-    SW.unindent();
-    SW.pf('}\n');
-    SW.pf('poolSize = Runtime.getRuntime().availableProcessors();\n');
-    if debugOn
-        SW.pf('%s.log("poolSize is set to " + poolSize);\n', wrapperName);
-    end
-    if metricsOn
-        SW.pf("long lastTic;\n");
-    end
-    SW.pf('pool = new ArrayBlockingQueue<%s>(poolSize);\n', baseClassName);
-    SW.unindent();
-    SW.pf('}\n');
-
-    %% createInstance
-    SW.pf('private void createInstance() {\n');
-    SW.indent();
-
-    SW.pf('try {\n');
-    SW.indent();
-
-    if metricsOn
-        SW.pf("long lastTic;\n");
-        SW.pf('lastTic = %s.tic("Initializing MATLAB Runtime # " + numCreated);\n', wrapperName);
-    end
-    SW.pf('String uuid = java.util.UUID.randomUUID().toString();\n');
-    SW.pf('String ctfRoot = "/tmp/ctfroot_" + uuid;\n');
-    SW.pf("MWCtfExtractLocation mwctfExt = new MWCtfExtractLocation(ctfRoot);\n");
-    SW.pf("MWComponentOptions mwCompOpts = new MWComponentOptions(mwctfExt, new MWCtfClassLoaderSource(%s.class));\n", JW.getMCRFactoryName);
-    SW.pf("%s elem = new %s(mwCompOpts);\n", baseClassName, baseClassName);
-    if metricsOn
-        SW.pf('%s.toc("Initializing MATLAB Runtime # " + numCreated, lastTic);\n', wrapperName)
-    end
-    %     SW.pf('%s elem = new %s();\n', baseClassName, baseClassName);
-    SW.pf('pool.put(elem);\n');
-    SW.pf('numCreated++;\n');
-    SW.unindent();
-
-    % Try/catch handling
-    SW.pf('} catch (MWException mwex) {\n');
-    SW.indent();
-    SW.pf("// Consider what to do here.\n");
-    SW.pf('mwex.printStackTrace();\n');
-    SW.unindent();
-    SW.pf('} catch (InterruptedException iex) {\n');
-    SW.indent();
-    SW.pf('iex.printStackTrace();\n');
-    SW.pf('System.err.println("Problem with Runtime Queue: " + iex.toString());\n');
-    SW.unindent();
-    SW.pf('}\n')
-
-    SW.unindent();
-    SW.pf('} // createInstance \n\n');
-
-    %% getInstance
-    SW.pf('public %s getInstance() {\n', baseClassName);
-    SW.indent();
-    SW.pf("%s inst = null;\n", baseClassName)
-    SW.pf("if ( (pool.size() == 0) && (numCreated < poolSize) ) {\n");
-    SW.indent();
-    SW.pf('createInstance();\n');
-    SW.unindent();
-    SW.pf('}\n');
-    SW.pf('try {\n');
-    SW.indent();
-    SW.pf("inst = pool.take();\n")
-    SW.unindent();
-    SW.pf('} catch (InterruptedException iex) {\n');
-    SW.indent();
-    SW.pf('iex.printStackTrace();\n');
-    SW.pf('System.err.println("Problem with Runtime Queue: " + iex.toString());\n');
-    SW.unindent();
-    SW.pf('}\n')
-    if debugOn
-        SW.pf('%s.log("After taking element");\n', wrapperName)
-        SW.pf('showStatus();\n');
-    end
-    SW.pf('return inst;\n');
-    SW.unindent();
-    SW.pf('} /* getInstance */\n\n');
-
-    SW.pf('public void releaseInstance(%s inst) {\n', baseClassName);
-    SW.indent();
-    SW.pf("if (inst != null) {\n")
-    SW.indent();
-    SW.pf('try {\n');
-    SW.indent();
-    SW.pf('pool.put(inst);\n');
-    SW.unindent();
-    SW.pf('} catch (InterruptedException iex) {\n');
-    SW.indent();
-    SW.pf('iex.printStackTrace();\n');
-    SW.pf('System.err.println("Problem with Runtime Queue: " + iex.toString());\n');
-    SW.unindent();
-    SW.pf('}\n')
-
-    SW.unindent();
-    SW.pf('}\n')
-    if debugOn
-        SW.pf('%s.log("After returning element");\n', wrapperName)
-        SW.pf('showStatus();\n');
-    end
-    SW.unindent();
-    SW.pf('} /* releaseInstance */\n\n');
-
-    SW.pf('public void showStatus() {\n');
-    SW.indent();
-    SW.pf(['%s.log("MATLAB-PoolSize: (size+remainingCapacity==poolSize) " + ', ...
-        'pool.size() + " + " + ', ...
-        'pool.remainingCapacity() + " = " + poolSize);\n'], wrapperName);
-    SW.pf('%s.log("ctfserver on this node: " + getRuntimesCountOnNode());\n', wrapperName);
-    SW.unindent();
-    SW.pf('} /* showStatus */\n\n');
-
-    SW.pf('public long getRuntimesCountOnNode() {\n');
-    SW.indent();
-    SW.pf('long count = -1L;\n');
-    SW.pf('String[] commands = {"/bin/sh", "-c", "ps -ef | grep \\"[c]tfserver\\""};\n');
-    SW.pf('try {\n');
-    SW.indent();
-    SW.pf('Process proc = Runtime.getRuntime().exec(commands);\n');
-    SW.pf('java.io.BufferedReader br = new java.io.BufferedReader( new java.io.InputStreamReader(proc.getInputStream()));\n');
-    SW.pf('count = br.lines().count();\n');
-    SW.unindent();
-    SW.pf('} catch (java.io.IOException ioex) {\n');
-    SW.indent();
-    SW.pf('ioex.printStackTrace();\n');
-    SW.unindent();
-    SW.pf('}\n');
-    SW.pf('return count;        \n');
-    SW.unindent();
-    SW.pf('}\n');
-
-
-    SW.unindent();
-    SW.pf('} /* class RuntimeQueue */\n');
-    JW.addPostClass(SW);
 
 end
