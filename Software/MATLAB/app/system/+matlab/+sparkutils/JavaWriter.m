@@ -176,7 +176,7 @@ classdef JavaWriter < handle
             % Add stuff for PostClass
             SW.pf("\n%s\n", obj.PostClass);
 
-            SW.pf("/* End of file: %s */\n", obj.FileName);
+            SW.pf("/* End of file: %s */\n", obj.escape(obj.FileName));
         end
         
     end
@@ -195,7 +195,12 @@ classdef JavaWriter < handle
                 mkdir(filePath);
             end
             fileName = [fullfile(filePath, char(obj.ClassName)), '.java'];
+        end        
+    end
+
+    methods (Access=private)
+        function str = escape(~, str)
+            str = strrep(str, '\', '\\');
         end
-        
     end
 end
