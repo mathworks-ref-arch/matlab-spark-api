@@ -188,8 +188,88 @@ reg_myfun_udf(spark);
 reg_myfun_udf(spark, "myfun");
 ```
 
-**Note** Please be aware that the UDF functions currently don't work with
+**Note** Please be aware that the UDF functions currently do not work with
 array arguments.
+
+### Obfuscating code
+
+Starting in Release R2022b, MATLAB Compiler SDK supports obfuscating the
+code and folders in the artifacts. 
+This is done using the `-s` option for `mcc`,
+ [https://www.mathworks.com/help/compiler/mcc.html](https://www.mathworks.com/help/compiler/mcc.html).
+
+To use this with `SparkBuilder`, use call the method `obfuscateCode()`, i.e.
+```matlab
+SB.obfuscateCode()
+```
+
+### Using custom encryption
+
+Starting in Release R2022b, it is possible to use custom encryption with
+MATLAB Compiler SDK artifacts. This is done using the `-k` option for `mcc`,
+ [https://www.mathworks.com/help/compiler/mcc.html](https://www.mathworks.com/help/compiler/mcc.html).
+As per the mcc documentation specific contents of the Compiler SDK are already
+encrypted, e.g. m files. However, this option adds the ability to provide a
+user specified key.
+
+The `SparkBuilder` class has support for adding this encryption. As described
+in the documentation of `mcc`, encryption can be added like this:
+
+```matlab
+mcc -k "file=<key_file_path>;loader=<mex_file_path>" <other arguments>
+```
+
+To use this with `SparkBuilder`, specify the `key` and the `mexfile`
+by calling the method `addEncryptionFiles`, e.g.:
+
+```matlab
+SB = <some initialization>
+
+SB.addEncryptionFiles("./some.key", "./some_mex.mexa64")
+```
+This will then add the corresponding flag to the build, thereby enabling custom encryption.
+
+#### Trying out encryption
+
+To try out encryption, the option `-k` can be used without specifying the files. In this
+case, the files will be created. When doing so, however, the build will fail.
+This approach can still be used, though, by doing as follows:
+
+```matlab
+% Compile a function (simple example) with the -k option
+mcc -W 'java:example.addTwo,addTwoClass' -k -d ./out -v -Z autodetect class{addTwoClass:./addTwo.m}
+```
+
+This will fail, but it will have created a sample key-file and a mex file. Copy these to the current folder.
+In this example:
+
+```matlab
+% Please note that mex extension differs for different platforms
+copyfile("./out/external_key_demo/addTwo.key", ".")
+copyfile("./out/external_key_demo/addTwo_loader.mexa64", ".")
+```
+
+Now the build can be started again, but by explicitly using these new files:
+
+```matlab
+ mcc -W 'java:example.addTwo,addTwoClass' -k 'file=./addTwo.key;loader=./addTwo_loader.mexa64' -d .\out -v -Z autodetect class{addTwoClass:./addTwo.m}
+```
+
+This second build will now work. Correspondingly, these (example) key/mex combination can be used
+with `SparkBuilder` too:
+
+```matlab
+SB = <some initialization>
+
+SB.addEncryptionFiles("./addTwo.key", "./addTwo_loader.mexa64")
+```
+
+> Note, the sample key and mex file produced are for demonstration and are intented to be
+> customised to meet production security requirements.
+
+> Note, in most Spark environments e.g. Databricks the mex file will be excuted on a
+> Linux based system thus it must also be compiled on a Linux based system as it is C
+> based rather than MATLAB.
 
 ## JavaClass
 The class `compiler.build.spark.JavaClass`, as seen above, is used to create a
@@ -340,6 +420,6 @@ Another aspect of this is that the function has 1 input and 1 output, but we spe
 4 inputs and 4 outputs when defining the `File` object. This corresponds to the number
 columns in the input table and the output table.
 
-[//]: #  (Copyright 2021 The MathWorks, Inc.)
+[//]: #  (Copyright 2021-2022 The MathWorks, Inc.)
 
 

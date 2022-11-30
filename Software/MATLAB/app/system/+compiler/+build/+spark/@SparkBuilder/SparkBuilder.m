@@ -16,6 +16,12 @@ classdef SparkBuilder < handle
         package
         Verbose = false
         AddReleaseToName = true
+        Obfuscate (1,1) logical = false
+    end
+
+    properties (SetAccess = private)
+        EncryptionKeyFile string = string.empty
+        EncryptionMexFile string = string.empty
     end
     properties (Dependent=true)
         BuildType
@@ -64,6 +70,18 @@ classdef SparkBuilder < handle
                         
             mccStr = [mccStr, getBuildTarget(obj.BuildType)];
             mccStr = [mccStr, getLinkArgument(obj.BuildType)];
+
+            % Encryption
+            if obj.usesEncryption
+                mccStr = [mccStr,  ...
+                    char(sprintf(" -k 'file=%s;loader=%s'", obj.EncryptionKeyFile, obj.EncryptionMexFile))];
+            end
+            
+            % Obfuscation
+            if obj.Obfuscate
+                mccStr = [mccStr,  ' -s'];
+            end
+
             mccStr = [mccStr, sprintf(' -d %s', obj.outputFolder)];
             mccStr = [mccStr, getClassBuild(obj.BuildType)];
             
@@ -126,20 +144,9 @@ classdef SparkBuilder < handle
             
         end
         
-        function genPartitionHelpers(obj)
-            % if ~isa(obj.BuildType, 'compiler.build.spark.buildtype.JavaLib')
-            %     return;
-            % end
 
-            obj.GenMatlabDir = fullfile(obj.outputFolder, 'matlab_helpers');
-            if ~exist(obj.GenMatlabDir, 'dir')
-                mkdir(obj.GenMatlabDir);
-            end
-            
-            for k=1:length(obj.javaClasses)
-               JC = obj.javaClasses(k);
-               genPartitionHelpers(JC);
-            end
+        function tf = usesEncryption(obj)
+            tf = ~isempty(obj.EncryptionKeyFile) && ~isempty(obj.EncryptionMexFile);
         end
     end
     methods (Hidden)

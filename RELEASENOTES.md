@@ -1,5 +1,9 @@
 # MATLAB *Spark API* - Release Notes
 
+## 0.2.8 (29th November 2022)
+* Support encryption for `SparkBuilder`
+* Support obfuscation for `SparkBuilder`
+
 ## 0.2.7 (16th November 2022)
 * Minor Apple silicon fix
 
