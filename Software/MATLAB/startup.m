@@ -16,9 +16,6 @@ function startup(varargin)
     % scanned recursively
     here = fileparts(mfilename('fullpath'));
     
-    % Add the appropriate architecture binaries
-    archDir = iGetArchSuffix(); %#ok<NASGU>
-    
     rootDirs={...
         fullfile(here,'app', 'system'),false;...
         fullfile(here,'app', 'functions'),false;...
@@ -94,7 +91,7 @@ function iAddFilteredFolders(rootDirs)
         
         % loop through path and remove all the .svn entries
         if ~isempty(svnFilteredPath)
-            for pCount=1:length(svnFilteredPath), %#ok<FXSET>
+            for pCount=1:length(svnFilteredPath) %#ok<FXSET>
                 filterCheck=[svnFilteredPath{pCount},...
                     gitFilteredPath{pCount},...
                     slprjFilteredPath{pCount},...
@@ -134,7 +131,7 @@ function iSafeAddToPath(pathStr)
     % Add to path if the file exists
     if exist(pathStr,'dir')
         disp(['Adding ',pathStr]);
-        addpath(pathStr); %#ok<MCAP>
+        addpath(pathStr); 
     else
         disp(['Skipping ',pathStr]);
     end
@@ -142,7 +139,7 @@ function iSafeAddToPath(pathStr)
 end
 
 %% Helper function to add to the Dynamic Java classpath
-function iSafeAddToJavaPath(pathStr)
+function iSafeAddToJavaPath(pathStr) %#ok<DEFNU> 
     
     % Check the current java path
     jPaths = string(javaclasspath('-dynamic'));
@@ -160,23 +157,4 @@ function iSafeAddToJavaPath(pathStr)
         warning('SparkAPI:Warning', 'Jar not found: %s. This may affect the functionality of this package.\n', pathStr);
     end    
     
-end
-
-%% Helper function to add arch specific suffix
-function binDirName = iGetArchSuffix()
-    
-    switch computer
-        case 'PCWIN'
-            binDirName = 'win32';
-        case 'PCWIN64'
-            binDirName = 'win64';
-        case 'GLNX86'
-            binDirName = 'glnx86';
-        case 'GLNXA64'
-            binDirName = 'glnxa64';
-        case 'MACI64'
-            binDirName = 'maci64';
-        otherwise
-            error('FW:Unsupported','The framework is not supported on this platform');
-    end
 end

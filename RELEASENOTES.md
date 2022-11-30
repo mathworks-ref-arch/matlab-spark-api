@@ -1,5 +1,8 @@
 # MATLAB *Spark API* - Release Notes
 
+## 0.2.7 (16th November 2022)
+* Minor Apple silicon fix
+
 ## 0.2.6 (16th November 2022)
 * Implemented `pivot` method on `RelationalGroupedDataset`
 * Enabled Apple silicon beta in startup
