@@ -18,13 +18,26 @@ function genExpressionEncoders(N)
     %     end
     exprEncoder = "ExpressionEncoder";
 
-    dstFolder = getSparkApiRoot(-1, 'Java', 'MWEncoders', 'src', 'main', 'scala', 'com', 'mathworks', 'spark', 'sql', 'encoders');
+    dstFolder = getSparkApiRoot(-1, 'Java', 'SparkUtility', 'src', 'main', 'scala', 'com', 'mathworks', 'spark', 'sql', 'encoders');
+    if ~isfolder(dstFolder)
+        mkdir(dstFolder);
+    end
     dstFile = fullfile(dstFolder, 'MWEncoders.scala');
     SW = matlab.sparkutils.StringWriter(dstFile);
+
+    SW.pf("/*\n");
+    SW.pf(" * MWEncoders.scala\n");
+    SW.pf(" * This file contains some utilities used by SparkBuilder, in order to create encoders more easily\n");
+    SW.pf(" * in Java code.\n");
+    SW.pf(" *\n");
+    copyrightYear = datetime('now');
+    SW.pf(" * Copyright 2022-%d The MathWorks, Inc. \n", copyrightYear.Year);
+    SW.pf("*/\n\n");
+
     SW.pf('package com.mathworks.spark.sql.encoders\n');
     SW.pf('import org.apache.spark.sql.Encoder\n');
     SW.pf('import org.apache.spark.sql.catalyst.encoders.{encoderFor, %s => MWExprEncoder}\n\n', exprEncoder);
-  
+
     SW.pf('object MWEncoders {\n\n');
 
     % SW.pf('def mwEncoderFor[A: Encoder]: ExprEncoder[A] =\n');
@@ -36,7 +49,7 @@ function genExpressionEncoders(N)
     % SW.pf('}\n\n');
 
 
-    for k=2:N
+    for k=1:N
         idcs = 1:k;
         sIdcs = string(idcs);
         types = "T" + sIdcs;

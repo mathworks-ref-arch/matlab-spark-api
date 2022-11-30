@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.mathworks</groupId>
   <artifactId>sparkbuilder-runtimequeue</artifactId>
-  <version>0.1.0</version>
+  <version>0.1.1</version>
   <packaging>jar</packaging>
   <name>MATLAB SparkBuilder RuntimeQueue</name>
   <url>http://www.mathworks.com</url>
@@ -13,7 +13,7 @@
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
     <encoding>UTF-8</encoding>
-    <matlab.runtime.version>9.12</matlab.runtime.version>
+    <matlab.runtime.version>9.13</matlab.runtime.version>
     <!-- <scala.version>2.12.3</scala.version> -->
   </properties>
 
@@ -50,7 +50,7 @@
         <version>3.2.0</version>
         <configuration>
           <outputDirectory>../../MATLAB/lib/jar</outputDirectory>
-          <finalName>${project.artifactId}_${matlab.runtime.version}-${project.version}</finalName>
+          <finalName>${project.artifactId}-${project.version}</finalName>
         </configuration>
       </plugin>
       <!-- <plugin>

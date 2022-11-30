@@ -86,8 +86,10 @@ Run this command to build matlab-spark-utility:
 ```
 
 The end user should not be required to use the `genMavenBuildCommand` command explicitly, as this
-is wrapped in the `buildMatlabSparkUtility` command. This is explained in one of the containing
-packages, i.e. MATLAB Interface *for Apache Spark* or MATLAB Interface *for Databricks*.
+is wrapped in the `matlab.sparkutils.buildMatlabSparkUtility` command. This is explained in the 
+higher level packages,
+i.e. MATLAB Interface *for Apache Spark* and MATLAB Interface *for Databricks*,
+that use this module.
 
-[//]: #  (Copyright 2020-2021 The MathWorks, Inc.)
+[//]: #  (Copyright 2020-2022 The MathWorks, Inc.)
 

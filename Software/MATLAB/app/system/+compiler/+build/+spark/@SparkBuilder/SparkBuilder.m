@@ -225,18 +225,19 @@ classdef SparkBuilder < handle
             
             % We should add the correct Jar for compiling the wrapper files
             if isDatabricksEnvironment
-                compileJar = databricksConnectJar() + string(pathsep) + ...
-                    matlab.sparkutils.getMatlabSparkUtilityFullName('fullpath', true, 'shaded', false);
+                dbcJar = databricksConnectJar();
+                if strlength(dbcJar) == 0
+                    error('Spark:Error', 'No Databricks Connect Jar file found on the Java static classpath');
+                else
+                    compileJar = dbcJar + string(pathsep) + ...
+                        matlab.sparkutils.getMatlabSparkUtilityFullName('fullpath', true, 'shaded', false);
+                end
             else
                 compileJar = matlab.sparkutils.getMatlabSparkUtilityFullName('fullpath', true, 'shaded', true);
             end
             
             obj.addCompileDependency( compileJar );
             obj.addCompileDependency( matlab.sparkutils.getSparkBuilderRuntimeQueueFullName());
-            obj.addCompileDependency(matlab.sparkutils.getSparkMATLABEncodersFullName());
-            
-            obj.addPackageDependency(...
-                matlab.sparkutils.getMatlabSparkUtilityFullName('fullpath', true, 'shaded', false));
             
         end
         

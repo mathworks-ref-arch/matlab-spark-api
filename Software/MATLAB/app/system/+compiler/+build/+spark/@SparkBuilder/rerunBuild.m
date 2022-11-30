@@ -10,11 +10,7 @@ function rerunBuild(obj)
     fprintf('Add matlab-spark-utility classes\n');
     sparkUtility = matlab.sparkutils.getMatlabSparkUtilityFullName('fullpath', true, 'shaded', false);
     addExistingJar(obj, sparkUtility);
-
-    fprintf('Add matlab-encoders classes\n');
-    encoderUtility = matlab.sparkutils.getSparkMATLABEncodersFullName();
-    addExistingJar(obj, encoderUtility);
-   
+  
     fprintf('Compile: \n');
     [rc,sc] = obj.runCommand(adaptCompileCmd(obj));
 

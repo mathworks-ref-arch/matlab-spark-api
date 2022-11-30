@@ -10,36 +10,14 @@ function [r,s] = buildMatlabSparkUtility(sparkVer)
     
     % Copyright 2020-2022 MathWorks Inc.
    
-    % If the databricks package is available use it to provide a warning
-    if isDatabricksEnvironment
-        if exist('detectProxy', 'file') == 2
-            [tf, proxyUri] = detectProxy();
-            if tf
-                mvnProxyHelp = "https://maven.apache.org/guides/mini/guide-proxies.html";
-                warning("A HTTP proxy has been detected: %s\nEnsure Maven has been configured to use the proxy if necessary: %s", proxyUri.EncodedURI, mvnProxyHelp);
-            end
-        end
+    warning('SPARKAPI:buildmatlabsparkutility_moved', ...
+            "This function has been deprecated and will be removed in a future release.\n" + ...
+            "Please use matlab.sparkutils.buildMatlabSparkUtility instead.\n");
+
+    if nargin == 0
+        [r,s] = matlab.sparkutils.buildMatlabSparkUtility();
+    else
+        [r,s] = matlab.sparkutils.buildMatlabSparkUtility('sparkVersion', sparkVer);
     end
 
-    swRoot = fileparts(getSparkApiRoot());
-    sparkUtilityDir = fullfile(swRoot, 'Java', 'SparkUtility');
-    
-    old = cd(sparkUtilityDir);
-    goBack = onCleanup(@() cd(old));
-    
-    C = matlab.sparkutils.Config.getInMemoryConfig();
-    if nargin ~= 0
-        C.CurrentVersion = sparkVer;
-    end
-    
-    mvnCmd = C.genMavenBuildCommand();
-    fprintf("Running:\n\t%s\n", mvnCmd);
-    [r,s] = system(mvnCmd, '-echo');
-
-    if ~isDatabricksEnvironment
-        mvnCmd = C.genMavenBuildCommand("Databricks");
-        fprintf("Running:\n\t%s\n", mvnCmd);
-        [r2,s2] = system(mvnCmd, '-echo'); %#ok<ASGLU> 
-    end
-    
 end

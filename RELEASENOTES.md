@@ -1,4 +1,7 @@
-#  MATLAB *Spark API* - Release Notes
+# MATLAB *Spark API* - Release Notes
+
+## 0.2.5 (14th November 2022)
+* Consolidated building Java based utilities
 
 ## 0.2.4 (4th Novebmer 2022)
 * Support for more than 5 outputs for SparkBuilder (Scala)

@@ -74,8 +74,7 @@ classdef Config < handle
             
             entry = getCurrentEntry(obj);
             
-            mvnCmd = sprintf("mvn --batch-mode -P%s -Dspark.fullversion=%s", ...
-                lower(envType), entry.name);
+            mvnCmd = sprintf("mvn --batch-mode -Dspark.fullversion=%s", entry.name);
             for k=1:length(entry.maven)
                 mvnCmd = sprintf("%s -D%s=%s", mvnCmd, entry.maven(k).name, entry.maven(k).value);
             end
