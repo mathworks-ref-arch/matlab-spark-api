@@ -1,5 +1,8 @@
 #  MATLAB *Spark API* - Release Notes
 
+## 0.2.4 (4th Novebmer 2022)
+* Support for more than 5 outputs for SparkBuilder (Scala)
+
 ## 0.2.3 (28th October 2022)
 * Handle filename escaping for comments
 

@@ -19,6 +19,7 @@ function genSparkWrappers(obj, JW)
     JW.addImport("java.util.Iterator");
     JW.addImport("org.apache.spark.api.java.function.MapPartitionsFunction");
     JW.addImport("scala.collection.mutable.WrappedArray");
+    JW.addImport("com.mathworks.spark.sql.encoders.MWEncoders")
     
     useMetrics = obj.parent.Metrics;
     useDebug = obj.parent.Debug;

@@ -161,7 +161,7 @@ classdef File < handle
             if length(encEntries) == 1
                 enc = encEntries;
             else
-                enc =  sprintf("Encoders.tuple(%s)", encEntries.join(", "));
+                enc =  sprintf("MWEncoders.tuple(%s)", encEntries.join(", "));
             end
         end
 

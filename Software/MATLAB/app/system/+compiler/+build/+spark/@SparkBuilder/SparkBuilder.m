@@ -72,31 +72,6 @@ classdef SparkBuilder < handle
             end
         end
                        
-        function rerunBuild(obj)
-            % rerunBuild Runs the build steps after modification
-    
-            % First remove old Jars
-            delete(fullfile(obj.outputFolder, '*.jar'));
-    
-            fprintf('Compile: \n');
-            [rc,sc] = obj.runCommand(adaptCompileCmd(obj));
-            
-            % Add this small Jar inline, to make deployment easier
-            fprintf('Add matlab-spark-utility classes\n');
-            sparkUtility = matlab.sparkutils.getMatlabSparkUtilityFullName('fullpath', true, 'shaded', false);
-            classDir = fullfile(obj.outputFolder, 'classes');
-            unzip(sparkUtility, classDir)
-
-            fprintf('Jar: \n');
-            [rj,sj] = obj.runCommand(obj.jarCmd);
-            
-            fprintf('Doc: \n');
-            [rd,sd] = obj.runCommand(obj.extendJavaClassPath(obj.docCmd));
-            
-            setInfo(obj);
-        end
-        
-        
         function addClass(obj, classObj)
             if isempty(obj.javaClasses)
                 obj.javaClasses = classObj;
@@ -258,6 +233,7 @@ classdef SparkBuilder < handle
             
             obj.addCompileDependency( compileJar );
             obj.addCompileDependency( matlab.sparkutils.getSparkBuilderRuntimeQueueFullName());
+            obj.addCompileDependency(matlab.sparkutils.getSparkMATLABEncodersFullName());
             
             obj.addPackageDependency(...
                 matlab.sparkutils.getMatlabSparkUtilityFullName('fullpath', true, 'shaded', false));
