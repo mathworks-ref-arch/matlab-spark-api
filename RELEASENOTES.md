@@ -1,5 +1,8 @@
 # MATLAB *Spark API* - Release Notes
 
+## 0.3.1 (15th February 2023)
+* Tests added
+
 ## 0.3.0 (13th February 2023)
 * Install doc fixes
 * Implemented `mode` method for `DataFrameWriter`

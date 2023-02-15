@@ -16,7 +16,7 @@ classdef testDataFrameWriter < matlab.unittest.TestCase
             % Create a singleton SparkSession using the getOrCreate() method
             testCase.isDatabricks = isDatabricksEnvironment;            
             
-            testCase.timestamp = datestr(now,30);
+            testCase.timestamp = datetime('now', 'Format', 'uuuuMMdd''T''HHmmss');
             appName = 'DataFrameWriterUnitTests';
             if testCase.isDatabricks
                 spark = getDefaultDatabricksSession(appName);
@@ -90,6 +90,26 @@ classdef testDataFrameWriter < matlab.unittest.TestCase
             testWriteTemplate(testCase, 'json');
         end
         
+        function testSortBy(testCase)
+            DS = testCase.smallDS;
+            spark = testCase.sparkSession;
+            name1 = 'sortby_1';
+            name2 = 'sortby_2';
+            DS.write.sortBy('Age').bucketBy(2, 'Female').mode("overwrite").saveAsTable(name1)
+            DS.write.sortBy('Name').bucketBy(2, 'Female').mode("overwrite").saveAsTable(name2)
+
+            T = DS.table;
+            R1 = table(spark.table(name1));
+            R2 = table(spark.table(name2));
+
+            testCase.verifyEqual(T.Age, R2.Age);
+            testCase.verifyEqual(T.Name, R2.Name);
+            testCase.verifyEqual(flipud(T.Age), R1.Age);
+            testCase.verifyEqual(flipud(T.Name), R1.Name);
+
+        end
+
+        
         function testWriteAsTable(testCase)
             C = matlab.sparkutils.Config.getInMemoryConfig();
             verStr = string(C.CurrentVersion);
@@ -152,7 +172,6 @@ classdef testDataFrameWriter < matlab.unittest.TestCase
             DS.write.format(extension) ...
                 .option("mode", "overwrite") ...
                 .save(outFile);            
-            
         end
         
         function loc = getLocation(testCase, extension)
