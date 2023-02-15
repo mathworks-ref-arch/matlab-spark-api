@@ -37,6 +37,7 @@ function build(obj, options)
         obj.generateWrapper();
     end
 
+    
     % Now package all the functions in a wheel
     if options.createWheel
         obj.createWheel();
@@ -44,5 +45,8 @@ function build(obj, options)
         % Create a shell-file for easy testing in local Spark
         obj.generateSparkShellHelper();
     end
+
+    % Generate example files
+    obj.generatePythonExample();
 
 end

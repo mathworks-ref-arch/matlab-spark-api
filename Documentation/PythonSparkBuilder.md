@@ -37,7 +37,7 @@ OUT = compiler.build.spark.pythonPackage(buildOpts)
 > to MATLAB in R2021a, and thus cannot be used in earlier releases. To address this
 > in earlier releases, there are alternatives to these functions.
 > If using e.g. R2020a, use the command `compiler.build.spark.PythonPackageOptions`
-> for the options, for the build.
+> for the build options.
 >
 > This interface's support for Python based packaging for releases prior to R2021a,
 > is partial. Moving to a newer release of MATLAB is recommended.
@@ -270,8 +270,98 @@ df4.show(10)
 > **Note**: Each environment (Apache Spark, Python and MATLAB) have a certain set of supported data types.
 > Often, there's a direct mapping between some types, and for others there's no exact mapping.
 > For example, Spark supports (among other) `int16`, `int32` and `int64`, and so does MATLAB. Python however,
-> supports one integer type, of potentially unlimited bits. This can lead to cases where the difference in 
+> supports one integer type, of potentially unlimited bits. This can lead to cases where the implementation difference
 > cause numeric differences in output.
+
+## Generated example files
+In the process of compiling one ore more functions with `PythonSparkBuilder`, a few example functions will also
+be generated. For each MATLAB function being compiled, a Python file for running a job will be created. 
+
+If a the following options are made for compilation, compiling the functions `foo.m` and `baz.m`, in the package
+`demo.p1`, as configured below:
+```matlab
+opts = compiler.build.PythonPackageOptions(...
+    ["foo.m", "baz.m"], ...
+    "OutputDir", "psb_out", ...
+    "PackageName", "demo.p1" ...
+    );
+
+PSB = compiler.build.spark.pythonPackage(opts);
+```
+
+The following files will be generated:
+* `demo_p1_baz_example.py`
+* `demo_p1_foo_example.py`
+* `deploy_baz_example.m`
+* `deploy_foo_example.m`
+
+The Python file can be run as a job on a Spark cluster, exercising some of
+the methods that are generated. In the `baz` example, it may look like this:
+```python
+# Example file for generated functions
+
+from __future__ import print_function
+import sys
+from random import random
+
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import col,lit
+from datetime import datetime
+
+# Import special functions from wrapper
+from demo.p1.wrapper import baz_output_names
+from demo.p1.wrapper import baz_output_schema
+from demo.p1.wrapper import baz_mapPartitions
+from demo.p1.wrapper import baz_applyInPandas
+from demo.p1.wrapper import baz_mapInPandas
+
+if __name__ == "__main__":
+    """
+        Usage: demo_p1_baz_example.py range_limit out_folder
+    """
+    spark = SparkSession\
+            .builder\
+            .appName("simple_task")\
+            .getOrCreate()
+    
+    now = datetime.now() # current date and time
+    suffix = "_" + now.strftime("%Y%m%d_%H%M%S")
+    range_limit = int(sys.argv[1]) if len(sys.argv) > 1 else 1000
+
+    R = spark.range(range_limit).withColumnRenamed('id', 'xxxx')
+    DF = (R
+        .withColumn('ID', R['xxxx'].cast('long'))
+        .withColumn('Hello', R['xxxx'].cast('String'))
+        .withColumn('PIMult', R['xxxx'].cast('double'))
+    ).select("ID","Hello","PIMult")
+
+    OUT_mapPartitions = DF.rdd.mapPartitions(baz_mapPartitions).toDF(baz_output_names)
+    print('mapPartitions result')
+    OUT_mapPartitions.show(10, False)
+
+    OUT_mapInPandas = DF.mapInPandas(baz_mapInPandas, baz_output_schema)
+    print('mapInPandas result')
+    OUT_mapInPandas.show(10, False)
+
+    OUT_applyInPandas = DF.groupBy("ID").applyInPandas(baz_applyInPandas, baz_output_schema)
+    print('applyInPandas result')
+    OUT_applyInPandas.show(10, False)
+
+    print("baz task is now done!")
+
+# End of file demo_p1_baz_example.py
+```
+As can be seen, the function creates some sample data, whilst the values are irrelevant, the
+required schema is applied.
+It then proceeds to run some calculations 
+with the available functions. The code in this example can be used as a base for creating
+a *real function*, operating on *real data*. It may prove helpful for a MATLAB user
+rather than as a guide to writing Spark jobs.
+
+The MATLAB functions generated are specifically for users that run their Spark jobs on
+Databricks. It will run the job on an existing cluster, or a temporary job cluster, and
+is also aimed to be a help for users to run their Databricks jobs from within MATLAB.
+
 
 [//]: #  (Copyright 2022 The MathWorks, Inc.)
 

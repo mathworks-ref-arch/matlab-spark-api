@@ -1,5 +1,8 @@
 # MATLAB *Spark API* - Release Notes
 
+## 0.2.9 (16th December 2022)
+* Generate example files for `PythonSparkBuilder`
+
 ## 0.2.8 (29th November 2022)
 * Support encryption for `SparkBuilder`
 * Support obfuscation for `SparkBuilder`

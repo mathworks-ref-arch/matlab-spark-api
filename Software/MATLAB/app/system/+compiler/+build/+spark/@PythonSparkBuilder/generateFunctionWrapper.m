@@ -346,7 +346,7 @@ function generateFunctionWrapper(obj, SW, fileObj)
             %             applyInPandasName = sprintf("%s_applyInPandas", fileObj.funcName);
             applyInPandasName = fileObj.API.applyInPandas;
             mapInPandasName = sprintf("%s_mapInPandas", fileObj.funcName);
-            fileObj.API.applyInPandas = mapInPandasName;
+            fileObj.API.mapInPandas = mapInPandasName;
             if fileObj.ScopedTables
 
                 extraArgs = fileObj.generatePythonTableRestArgs;

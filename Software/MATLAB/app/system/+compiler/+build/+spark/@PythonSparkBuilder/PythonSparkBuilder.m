@@ -24,6 +24,7 @@ classdef PythonSparkBuilder < handle
         Files compiler.build.spark.File
         GenMatlabDir string
         HelperFiles string
+        ExampleFiles (1,1) struct
     end
 
     properties(Hidden)
