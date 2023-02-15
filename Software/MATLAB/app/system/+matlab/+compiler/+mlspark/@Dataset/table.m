@@ -1,4 +1,4 @@
-function tbl = table(obj, varargin)
+function tbl = table(obj)
     % TABLE Convert a Spark dataset or dataframe to a MATLAB table
     %
     % Converts from a Spark dataset to a MATLAB table

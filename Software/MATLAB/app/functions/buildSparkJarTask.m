@@ -24,7 +24,7 @@ function result = buildSparkJarTask(filePath, varargin)
     % https://www.mathworks.com/help/compiler/spark/example-on-deploying-applications-to-spark-using-the-matlab-api-for-spark.html
     % Returns a non empty jar file path on success
     
-    % Copyright 2021 MathWorks, Inc.
+    % Copyright 2021-2023 MathWorks, Inc.
 
     validString = @(x) ischar(x) || isStringScalar(x);
     
@@ -45,7 +45,7 @@ function result = buildSparkJarTask(filePath, varargin)
     checkPlatformCompatibility();
     
     if exist(filePath, 'file') ~= 2
-        error(['File not found: ', filePath]);
+        error('File not found: %s', filePath);
     end
     
     SB = compiler.build.spark.SparkBuilder(BuildFolder, Package);
@@ -83,26 +83,32 @@ end
 function checkPlatformCompatibility()
         if ispc || ismac
         if verLessThan('matlab','9.8') % 9.8 is R2020a
-            error('On non Linux platforms only MATLAB release 2020a and later support compilation for deployment to Databricks Linux nodes');
+            error('On non Linux platforms only MATLAB R2020a and later support compilation for deployment to Databricks Linux nodes');
         end
-        if exist([matlabroot, filesep, 'toolbox', filesep, 'compiler_sdk'], 'dir') ~= 7
-            error('Compiler SDK toolbox directory not found, Compiler SDK is required for the build process, check installed toolboxes using the ver command');
+        if isempty(ver('compiler_sdk'))
+            error('MATLAB Compiler SDK toolbox is not installed, MATLAB Compiler SDK is required for the build process, check installed toolboxes using the ver command');
         end
-        if verLessThan('compiler_sdk','6.8') % 6.8 is the R2020a version
-            error('Compiler SDK version 6.8 or later is required, use the ver command to check installed version');
+        if verLessThan('compiler_sdk','6.8') % 6.8 is R2020a
+            error('MATLAB Compiler SDK version 6.8 or later is required, use the ver command to check installed version');
         end
-        if exist([matlabroot, filesep, 'toolbox', filesep, 'compiler', filesep, 'mlspark', filesep, 'jars', filesep, '2.x', filesep, 'mlsubmit.jar'], 'file') ~= 2
+        if isempty(ver('compiler')) % Compiler should always be available if Compiler SDK is installed
+            error('MATLAB Compiler toolbox is not installed, MATLAB Compiler is required for the build process, check installed toolboxes using the ver command');
+        end
+        if ~isfile(fullfile(toolboxdir('compiler'), 'mlspark', 'jars', '2.x', 'mlsubmit.jar'))        
             error('MATLAB installation must be patched to add mlsubmit.jar support to allow compilation for Linux Spark nodes, see Documentation/FAQ.md');
         end
     elseif isunix
         if verLessThan('matlab','9.7') % 9.7 is R2019b
-            error('On Linux platforms only MATLAB release 2019b and later support compilation for deployment to Databricks Linux nodes');
+            error('On Linux platforms only MATLAB R2019b and later support compilation for deployment to Databricks Linux nodes');
         end
-        if exist([matlabroot, filesep, 'toolbox', filesep, 'compiler_sdk'], 'dir') ~= 7
-            error('Compiler SDK toolbox directory not found, Compiler SDK is required for the build process, check installed toolboxes using the ver command');
+        if isempty(ver('compiler_sdk'))
+            error('MATLAB Compiler SDK is not installed, MATLAB Compiler SDK is required for the build process, check installed toolboxes using the ver command');
         end
         if verLessThan('compiler_sdk','6.7')
-            error('Compiler SDK version 6.7 or later is required, use the ver command to check installed version');
+            error('MATLAB Compiler SDK version 6.7 or later is required, use the ver command to check installed version');
+        end
+        if isempty(ver('compiler')) % Compiler should always be available if Compiler SDK is installed
+            error('MATLAB Compiler toolbox is not installed, MATLAB Compiler is required for the build process, check installed toolboxes using the ver command');
         end
     else
         error('Unsupported platform');

@@ -3,7 +3,7 @@ function [result, status] =  buildRuntimeQueueJar()
     % result returns a logical true on success
     % status optionally returns the Maven output
 
-    % Copyright 2022 The MathWorks, Inc.
+    % Copyright 2022-2023 The MathWorks, Inc.
 
     srcDir = getSparkApiRoot(-1, "Java", "RuntimeQueue");
     old = cd(srcDir);
@@ -14,7 +14,7 @@ function [result, status] =  buildRuntimeQueueJar()
     end
 
     V = ver('matlab');
-    javaBuilderLoc = fullfile(matlabroot, 'toolbox', 'javabuilder', 'jar', 'javabuilder.jar');
+    javaBuilderLoc = matlab.sparkutils.getJavaBuilderPath();
 
     artifactId = "javabuilder";
 

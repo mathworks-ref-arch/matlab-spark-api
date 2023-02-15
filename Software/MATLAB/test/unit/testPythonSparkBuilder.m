@@ -59,7 +59,7 @@ classdef testPythonSparkBuilder < matlab.unittest.TestCase
 
             PSB = compiler.build.spark.PythonSparkBuilder(opts);
 
-            PSB.build("createWheel",false);
+            PSB.build();
             
             testCase.verifyTrue(isfolder(PSB.OutputDir));
             % TF = fullfile(SB.outputFolder, 'my', 'pkg', 'Time.java');

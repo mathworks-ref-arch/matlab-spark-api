@@ -13,8 +13,7 @@ function obj = option(obj, varargin)
 %         .load(inputLocation);
 
 
-%                 Copyright 2019 MathWorks, Inc.
-%                 $Id$
+    %  Copyright 2019-2023 MathWorks, Inc.
 
 obj.dataFrameReader.option(varargin{:});
 

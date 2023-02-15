@@ -1,6 +1,13 @@
 function build(obj, options)
     % build Start the build
     %
+    % The build method takes a few optional arguments. In almost all cases,
+    % they can (and should) be left at their default values.
+    %
+    %  clean - remove previous build (default: true)
+    %  genHelpers - Generate the partition helpers (default: true)
+    %  genWrappers - Generate the wrapper file (default: true)
+    %  createWheel - Create the wheel file (default: true)
 
     % Copyright 2022 The MathWorks, Inc.
 
@@ -44,9 +51,11 @@ function build(obj, options)
 
         % Create a shell-file for easy testing in local Spark
         obj.generateSparkShellHelper();
+
+        % Generate example files
+        obj.generatePythonExample();
+
     end
 
-    % Generate example files
-    obj.generatePythonExample();
 
 end

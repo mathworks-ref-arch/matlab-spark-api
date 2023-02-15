@@ -1,7 +1,7 @@
 function generateSparkShellHelper(obj)
     % generateSparkShellHelper Generate a shell script for interactive test
 
-    % Copyright 2021 The MathWorks, Inc.
+    % Copyright 2021-2023 The MathWorks, Inc.
 
     old = cd(obj.outputFolder);
     goBack = onCleanup(@() cd(old));
@@ -10,7 +10,7 @@ function generateSparkShellHelper(obj)
 
     fileName = genFile(obj, jarFile);
     if isunix
-        [r, s] = system(sprintf("chmod +x %s", fileName));
+        [r, s] = system(sprintf("chmod +x %s", fileName)); %#ok<ASGLU> 
     end
 end
 

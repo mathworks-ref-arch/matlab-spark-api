@@ -9,7 +9,7 @@ classdef SparkBuilder < handle
     %  Please refer to the documentation delivered in this package for
     %  usage examples.
     
-    % Copyright 2021 The MathWorks, Inc.
+    % Copyright 2021-2023 The MathWorks, Inc.
     
     properties
         outputFolder
@@ -249,7 +249,7 @@ classdef SparkBuilder < handle
         end
         
         function jbPath = getJavaBuilder(~)
-            jbPath = fullfile(matlabroot, 'toolbox', 'javabuilder', 'jar', 'javabuilder.jar');
+            jbPath = matlab.sparkutils.getJavaBuilderPath();
         end
         
         function cp = getClassPath(obj, isCompilation)
