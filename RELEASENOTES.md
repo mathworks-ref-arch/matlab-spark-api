@@ -1,5 +1,8 @@
 # MATLAB *Spark API* - Release Notes
 
+## 0.3.4 (15th June 2023)
+* Handle Python path when building wheel files
+
 ## 0.3.3 (9th May 2023)
 * Add support for Spark 3.3.0
 

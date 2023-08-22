@@ -1,7 +1,7 @@
 function createWheel(obj)
     % createWheel Create a wheel for the Python package
 
-    % Copyright 2022 The MathWorks, Inc.
+    % Copyright 2022-2023 The MathWorks, Inc.
 
     % TODO revise to better use pyrun/pyrunfile when legacy version support permits
 
@@ -13,30 +13,34 @@ function createWheel(obj)
         if checkPyVersion(pyPath)
             if checkPipInstalled(pyPath)
                 if checkSetupToolsInstalled(pyPath)
-                    command = [char(pyPath), ' setup.py bdist_wheel'];
-                    [status, cmdout] = system(command);
-                    if status == 0
-                        wheel = obj.getWheelFile();
-                        fprintf("Created .whl file: %s\n", wheel);
-                    else
-                        if checkDistutilsInstalled(pyPath)
-                            error('SPARK_API:createWheel','Error building .whl file: %s\n', cmdout);
+                    if checkWheelInstalled(pyPath)
+                        command = [char(pyPath), ' setup.py bdist_wheel'];
+                        [status, cmdout] = system(command);
+                        if status == 0
+                            wheel = obj.getWheelFile();
+                            fprintf("Created .whl file: %s\n", wheel);
                         else
-                            warning('SPARK_API:createWheel', "The distutils Python package is not installed and is required on some systems");
-                            error('SPARK_API:createWheel','Error building .whl file: %s\n', cmdout);
+                            error('SPARK_API:createWheel','Error building .whl file: %s', cmdout);
                         end
+                    else
+                        error('SPARK_API:createWheel','Error building .whl file');
                     end
                 else
-                    error('SPARK_API:createWheel','Error building .whl file\n');
+                    if checkDistutilsInstalled(pyPath)
+                        error('SPARK_API:createWheel','Error building .whl file');
+                    else
+                        warning('SPARK_API:createWheel', "The distutils Python package is not installed and is required on some systems");
+                        error('SPARK_API:createWheel','Error building .whl file');
+                    end
                 end
             else
-                error('SPARK_API:createWheel','Error building .whl file\n');
+                error('SPARK_API:createWheel','Error building .whl file');
             end
         else
-            error('SPARK_API:createWheel','Error building .whl file\n');
+            error('SPARK_API:createWheel','Error building .whl file');
         end
     else
-        error('SPARK_API:createWheel','Error building .whl file\n');
+        error('SPARK_API:createWheel','Error building .whl file');
     end
 end
 
@@ -54,6 +58,8 @@ function pyPath = getPython3Path()
         if startsWith(pe.Version, '3')
             if isfile(pe.Executable)
                 pyPath = char(pe.Executable);
+                % pyPath may have spaces or stray ", remove 1 level if present and add " on both sides
+                pyPath = ['"', strip(pyPath, 'both', '"'), '"'];
             else
                 warning('SPARK_API:getPython3Path', "Python executable not found: %s", pe.Executable);
             end
@@ -64,8 +70,27 @@ function pyPath = getPython3Path()
 end
 
 
+function tf = checkWheelInstalled(pyPath)
+    % Returns true if wheel is installed otherwise false
+    tf = false;
+    command = [char(pyPath), ' -m pip show wheel'];
+    [status, cmdout] = system(command);
+    if status ~= 0
+        warning('SPARK_API:checkWheelInstalled', "System command: %s failed, returned: %d, %s", command, status, cmdout);
+        warning('SPARK_API:checkWheelInstalled', "The wheel Python package is not installed, to install: %s pip install wheel", pyPath);
+    else
+        cmdout = strip(cmdout);
+        if startsWith(cmdout, 'Name: wheel')
+            tf = true;
+        else
+            warning('SPARK_API:checkWheelInstalled', "The wheel Python package is not installed, to install: %s pip install wheel", pyPath);
+        end
+    end
+end
+
+
 function tf = checkSetupToolsInstalled(pyPath)
-    % Returns true is setupTools is installed otherwise false
+    % Returns true if setupTools is installed otherwise false
     tf = false;
 
     command = [char(pyPath), ' -m pip show setuptools'];
