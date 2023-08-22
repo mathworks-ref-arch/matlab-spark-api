@@ -8,7 +8,7 @@ function [r,s] = buildMatlabSparkUtility(options)
     % It relies on information from matlab.sparkutility.Config, to use the
     % correct information.
     
-    % Copyright 2020-2022 MathWorks Inc.
+    % Copyright 2020-2023 MathWorks Inc.
 
     arguments
         options.sparkVersion (1,1) string = ""
@@ -46,13 +46,19 @@ function [r,s] = buildMatlabSparkUtility(options)
 
         if isempty(mvnInfo)
             error('MATLABSparkApi:build_spark_utility_no_dbc_jar', ...
-                "Couldn't find a matlab-databricks-connect-*.jar file. Please build this first.");
+                "Could find a matlab-databricks-connect*-*.jar file. Please build this first.");
         end
 
         if ~matlab.utils.Maven.installFileToRepo(mvnInfo.file, mvnInfo.groupId, mvnInfo.artifactId, mvnInfo.version, 'echo', true)
             error('MATLABSparkApi:build_spark_utility_install_dbc', "Error installing Databricks Connect jar to Maven repository");
         end
-        mvnCmd = mvnCmd + " -Dmatlab.databricks.connect.version=" + mvnInfo.version + " -Pdatabricks";
+        verFields = split(mvnInfo.version, '.');
+        majorVer = str2double(verFields(1));
+        if majorVer >= 13
+            mvnCmd = mvnCmd + " -Dmatlab.databricks.connectv2.version=" + mvnInfo.version + "-PdatabricksConnectv2";
+        else
+            mvnCmd = mvnCmd + " -Dmatlab.databricks.connect.version=" + mvnInfo.version + " -Pdatabricks";
+        end
 
         fprintf("Running:\n\t%s\n", mvnCmd);
         [r,s] = system(mvnCmd, '-echo');

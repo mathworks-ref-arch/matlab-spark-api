@@ -292,6 +292,80 @@
           "src": "https://repo1.maven.org/maven2/org/apache/spark/spark-avro_2.12/3.3.0/spark-avro_2.12-3.3.0.jar"
         }
       ]
+    },
+    {
+      "name": "3.3.2",
+      "maven": [
+        {
+          "name": "spark.version",
+          "value": "3.3.2"
+        },
+        {
+          "name": "spark.major.version",
+          "value": "3.x"
+        },
+        {
+          "name": "scala.version",
+          "value": "2.12.15"
+        },
+        {
+          "name": "scala.compat.version",
+          "value": "2.12"
+        },
+        {
+          "name": "hadoop.version",
+          "value": "3.3.2"
+        }
+      ],
+      "libs": [
+        {
+          "base": "delta-core",
+          "jar": "delta-core_2.12-2.3.0.jar",
+          "src": "https://repo1.maven.org/maven2/io/delta/delta-core_2.12/2.3.0/delta-core_2.12-2.3.0.jar"
+        },
+        {
+          "base": "spark-avro",
+          "jar": "spark-avro_2.12-3.3.2.jar",
+          "src": "https://repo1.maven.org/maven2/org/apache/spark/spark-avro_2.12/3.3.2/spark-avro_2.12-3.3.2.jar"
+        }
+      ]
+    },
+    {
+      "name": "3.4.0",
+      "maven": [
+        {
+          "name": "spark.version",
+          "value": "3.4.0"
+        },
+        {
+          "name": "spark.major.version",
+          "value": "3.x"
+        },
+        {
+          "name": "scala.version",
+          "value": "2.12.17"
+        },
+        {
+          "name": "scala.compat.version",
+          "value": "2.12"
+        },
+        {
+          "name": "hadoop.version",
+          "value": "3.3.4"
+        }
+      ],
+      "libs": [
+        {
+          "base": "delta-core",
+          "jar": "delta-core_2.12-2.4.0.jar",
+          "src": "https://repo1.maven.org/maven2/io/delta/delta-core_2.12/2.4.0/delta-core_2.12-2.4.0.jar"
+        },
+        {
+          "base": "spark-avro",
+          "jar": "spark-avro_2.12-3.4.0.jar",
+          "src": "https://repo1.maven.org/maven2/org/apache/spark/spark-avro_2.12/3.4.0/spark-avro_2.12-3.4.0.jar"
+        }
+      ]
     }
   ]
 }

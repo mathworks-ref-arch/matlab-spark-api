@@ -468,5 +468,30 @@
                 </plugins>
             </build>
         </profile>
+
+        <profile>
+            <id>databricksConnectv2</id>
+            <!-- Databricks solution, relying on a locally installed version of the matlab-databricks-connectv2 Jar -->
+            <dependencies>
+                <dependency>
+                    <groupId>com.mathworks</groupId>
+                    <artifactId>matlab-databricks-connectv2</artifactId>
+                    <version>${matlab.databricks.connectv2.version}</version>
+                </dependency>
+            </dependencies>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-jar-plugin</artifactId>
+                        <version>3.2.0</version>
+                        <configuration>
+                            <outputDirectory>../../MATLAB/lib/jar</outputDirectory>
+                            <finalName>${project.artifactId}_${spark.fullversion}-${project.version}</finalName>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
     </profiles>
 </project>

@@ -1,5 +1,12 @@
 # MATLAB *Spark API* - Release Notes
 
+## 0.3.6 (13th July 2023)
+* Implement `table` method on `DataFrameReader`
+
+## 0.3.5 (20th June 2023)
+* Add more Spark Versions
+* Extend test builds
+
 ## 0.3.4 (15th June 2023)
 * Handle Python path when building wheel files
 
