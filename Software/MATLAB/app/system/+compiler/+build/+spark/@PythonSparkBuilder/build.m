@@ -34,7 +34,7 @@ function build(obj, options)
     else
         obj.BuildResults = compiler.build.spark.internal.pythonPackage(buildOpts);
     end
-    
+
     % Overwrite the original setup.py file, to comply with things like
     % bdist_wheel
     obj.genPythonSetup();
@@ -44,7 +44,7 @@ function build(obj, options)
         obj.generateWrapper();
     end
 
-    
+
     % Now package all the functions in a wheel
     if options.createWheel
         obj.createWheel();

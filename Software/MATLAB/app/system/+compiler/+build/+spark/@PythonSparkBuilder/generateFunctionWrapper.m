@@ -273,11 +273,18 @@ function generateFunctionWrapper(obj, SW, fileObj)
                 SW.pf('""" A call to the MATLAB function %s\n', fileObj.funcName);
                 SW.pf('The input argument in this case is an iterator\n');
                 SW.pf('It is used as argument e.g. to mapPartition. """\n');
-                SW.pf("instance = %s.getInstance()\n", obj.WrapperClassName);
                 SW.pf("rows = list(%s(iterator))\n", fileObj.API.rowsIterator);
+                SW.pf("if len(rows)==0:\n");
+                SW.indent()
+                SW.pf("return iter([])\n");
+                SW.unindent();
+                SW.pf("else:\n");
+                SW.indent()
+                SW.pf("instance = %s.getInstance()\n", obj.WrapperClassName);
                 SW.pf("results = instance.RT.%s_table(rows)\n", fileObj.funcName);
                 SW.pf("%s.releaseInstance(instance)\n", obj.WrapperClassName);
                 SW.pf("return iter(results)\n\n")
+                SW.unindent();
                 SW.unindent();
             end
         end

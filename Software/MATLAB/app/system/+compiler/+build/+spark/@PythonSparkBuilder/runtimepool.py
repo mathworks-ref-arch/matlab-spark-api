@@ -39,7 +39,7 @@ class RuntimePool:
         self.numCreated = 0
 
         # Initialize the runtime to run out-of process
-        initFunction((['-outproc']))
+        initFunction([])
 
     @synchronized
     def get(self):

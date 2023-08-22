@@ -243,8 +243,8 @@ classdef SparkBuilder < handle
                 compileJar = matlab.sparkutils.getMatlabSparkUtilityFullName('fullpath', true, 'shaded', true);
             end
             
-            obj.addCompileDependency( compileJar );
-            obj.addCompileDependency( matlab.sparkutils.getSparkBuilderRuntimeQueueFullName());
+            obj.addCompileDependency(compileJar);
+            obj.addCompileDependency(matlab.sparkutils.getSparkBuilderRuntimeQueueFullName());
             
         end
         

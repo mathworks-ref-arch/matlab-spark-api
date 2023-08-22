@@ -25,8 +25,11 @@ function javaBuilderLoc = getJavaBuilderPath(silent)
         if strlength(mcrroot) > 0
             javaBuilderLoc =  fullfile(mcrroot, 'toolbox', 'javabuilder', 'jar', 'javabuilder.jar');
         else
-            if isMATLABReleaseOlderThan("R2022b")
+            if verLessThan('matlab', "9.13") % R2022b
                 v = ver('matlab');
+                if ~isscalar(v)
+                    error("SPARKUTILS:GETJAVABUILDERPATH", "Unexpected nonscalar ver('matlab') output, possibly caused by a misconfigured Contents.m file on the path");
+                end
                 str = ['v', char(v.Version)];
                 rtDir = strrep(str, '.', '');
             else

@@ -1,7 +1,7 @@
 function obj = option(obj, varargin)
     % OPTION Method to specify options for writer
     %
-    % Built-in options include:
+    % Built-in options include:  
     % "mode": append | overwrite | ignore | error or errorifexists
     % "mode": SaveMode.Overwrite | SaveMode.Append | SaveMode.Ignore | SaveMode.ErrorIfExists
     % "path": "path_to_write_to"
@@ -16,7 +16,7 @@ function obj = option(obj, varargin)
     % options.
     %
     % See also mode
-    
+
     %  Copyright 2019-2023 MathWorks, Inc.
     
     obj.dataFrameWriter.option(varargin{:});

@@ -16,7 +16,8 @@ classdef testDataFrameWriter < matlab.unittest.TestCase
             % Create a singleton SparkSession using the getOrCreate() method
             testCase.isDatabricks = isDatabricksEnvironment;            
             
-            testCase.timestamp = datetime('now', 'Format', 'uuuuMMdd''T''HHmmss');
+            % testCase.timestamp = datestr(now,30);
+            testCase.timestamp = string(datetime('now', 'Format', 'uuuuMMdd''T''HHmmss'));
             appName = 'DataFrameWriterUnitTests';
             if testCase.isDatabricks
                 spark = getDefaultDatabricksSession(appName);
@@ -39,7 +40,7 @@ classdef testDataFrameWriter < matlab.unittest.TestCase
             % Create small test dataset
             S = struct(...
                 'Name', {"Alice", "Bob", "Cecilia", "Domingo"}, ...
-                'Age', { 50, 40, 30, 20}, ...
+                'Age', { 50, 20, 35, 29}, ...
                 'Female', { true, false, true, false});
             T = struct2table(S);
             DS = table2dataset(T, spark);
@@ -91,31 +92,36 @@ classdef testDataFrameWriter < matlab.unittest.TestCase
         end
         
         function testSortBy(testCase)
-            DS = testCase.smallDS;
             spark = testCase.sparkSession;
-            name1 = 'sortby_1';
-            name2 = 'sortby_2';
-            DS.write.sortBy('Age').bucketBy(2, 'Female').mode("overwrite").saveAsTable(name1)
-            DS.write.sortBy('Name').bucketBy(2, 'Female').mode("overwrite").saveAsTable(name2)
+            R = spark.range(500);
+            import matlab.compiler.mlspark.functions.lit
 
-            T = DS.table;
-            R1 = table(spark.table(name1));
-            R2 = table(spark.table(name2));
+            DS = R ...
+                .withColumn("Name", lit("Goofy")) ...
+                .withColumn("Other", lit(int64(1000)) - R.col("id"));
+            name_1 = "default.sorting_1";
+            name_2 = "default.sorting_2";
+            T = DS.table();
+            DS.write.bucketBy(15, "Name").sortBy("id").mode("overwrite").format("parquet").saveAsTable(name_1);
+            DS.write.bucketBy(33, "Name").sortBy("Other").mode("overwrite").format("parquet").saveAsTable(name_2);
 
-            testCase.verifyEqual(T.Age, R2.Age);
-            testCase.verifyEqual(T.Name, R2.Name);
-            testCase.verifyEqual(flipud(T.Age), R1.Age);
-            testCase.verifyEqual(flipud(T.Name), R1.Name);
+            T1 = spark.table(name_1).table();
+            T2 = spark.table(name_2).table();
 
+            testCase.verifyEqual(T, T1);
+            testCase.verifyEqual(T, flipud(T2));
+                
         end
 
-        
+
         function testWriteAsTable(testCase)
             C = matlab.sparkutils.Config.getInMemoryConfig();
             verStr = string(C.CurrentVersion);
             nameSuffix = "cfg_" + verStr.replace('.', '_').replace('-', '_') + ...
                 "_" + datestr(now,'yyyymmddTHHMMSS_FFF')
-            
+
+            spark = testCase.sparkSession;
+
             if testCase.isDatabricks
                 % saveLocation = "/test" + saveLocation;
                 saveLocation = fullfile('/test/writeAsTableTest/' + nameSuffix);
@@ -136,7 +142,7 @@ classdef testDataFrameWriter < matlab.unittest.TestCase
                 .option("mode", "Overwrite") ...
                 .saveAsTable(tableName);
             
-            DS2 = testCase.sparkSession.read.format("delta").load(saveLocation);
+            DS2 = spark.read.format("delta").load(saveLocation);
             DS2tbl = table(DS2);
             vars = DS2tbl.Properties.VariableNames;
             testCase.verifyTrue(strcmp(vars{1}, 'Name') && ...
@@ -145,7 +151,6 @@ classdef testDataFrameWriter < matlab.unittest.TestCase
             [ht, wdt] = size(DS2tbl);
             testCase.verifyTrue(ht == 4 && wdt == 3);
             
-            spark = testCase.sparkSession;
             spark.sql("DROP TABLE " + tableName);
             catch ex
                 fprintf('Problems writing delta table. Still marking this test as successful.\nMessage: %s\n', ...
@@ -177,7 +182,7 @@ classdef testDataFrameWriter < matlab.unittest.TestCase
         function loc = getLocation(testCase, extension)
             if testCase.isDatabricks
                 loc = ['/test/tmp/testDataFrameWriter/', ...
-                    testCase.timestamp, '/', ...
+                    char(testCase.timestamp), '/', ...
                     'TDFW', '.', extension];
             else
                 loc = addFileProtocol(fullfile(pwd, ['TDFW.', extension]));

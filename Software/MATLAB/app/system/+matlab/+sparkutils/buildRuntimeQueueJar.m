@@ -14,6 +14,9 @@ function [result, status] =  buildRuntimeQueueJar()
     end
 
     V = ver('matlab');
+    if ~isscalar(V)
+        error("SparkAPI:SparkBuilder", "Unexpected nonscalar ver('matlab') output, possibly caused by a misconfigured Contents.m file on the path");
+    end
     javaBuilderLoc = matlab.sparkutils.getJavaBuilderPath();
 
     artifactId = "javabuilder";
