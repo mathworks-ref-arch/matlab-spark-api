@@ -13,8 +13,8 @@
         <java.version>1.8</java.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
-        <spark.version>3.0.1</spark.version>
-        <spark.fullversion>3.0.1</spark.fullversion>
+        <spark.version>3.3.3</spark.version>
+        <spark.fullversion>3.3.3</spark.fullversion>
         <spark.major.version>3.x</spark.major.version>
         <delta.version>0.7.0</delta.version>
         <encoding>UTF-8</encoding>

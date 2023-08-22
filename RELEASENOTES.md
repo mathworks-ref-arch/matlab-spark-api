@@ -1,5 +1,8 @@
 # MATLAB *Spark API* - Release Notes
 
+## 0.3.7 (22nd August 2023)
+* Change library version because of CVE-2023-22946
+
 ## 0.3.6 (13th July 2023)
 * Implement `table` method on `DataFrameReader`
 
