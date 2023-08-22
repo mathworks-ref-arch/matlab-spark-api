@@ -1,5 +1,8 @@
 # MATLAB *Spark API* - Release Notes
 
+## 0.3.3 (9th May 2023)
+* Add support for Spark 3.3.0
+
 ## 0.3.2 (3rd May 2023)
 * Performance improvements for PythonSparkBuilder runtime
 
